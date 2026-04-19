@@ -1,0 +1,14 @@
+{
+	"required": true,
+	"package": "org.gaziz.downloader.client.mixin",
+	"compatibilityLevel": "JAVA_21",
+	"client": [
+		"TitleScreenMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	},
+	"overwrites": {
+		"requireAnnotations": true
+	}
+}

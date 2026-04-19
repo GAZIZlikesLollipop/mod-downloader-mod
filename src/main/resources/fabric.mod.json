@@ -1,0 +1,46 @@
+{
+	"schemaVersion": 1,
+	"id": "mod-downloader-mod",
+	"version": "${version}",
+	"name": "mod-downloader-mod",
+	"description": "This is an example description! Tell everyone what your mod is about!",
+	"authors": [
+		"Me!"
+	],
+	"contact": {
+		"homepage": "https://fabricmc.net/",
+		"sources": "https://github.com/FabricMC/fabric-example-mod"
+	},
+	"license": "CC0-1.0",
+	"icon": "assets/mod-downloader-mod/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			{
+				"value": "org.gaziz.downloader.Moddownloadermod",
+				"adapter": "kotlin"
+			}
+		],
+		"client": [
+			{
+				"value": "org.gaziz.downloader.client.ModdownloadermodClient",
+				"adapter": "kotlin"
+			}
+		]
+	},
+	"mixins": [
+		"mod-downloader-mod.mixins.json",
+		{
+			"config": "mod-downloader-mod.client.mixins.json",
+			"environment": "client"
+		}
+	],
+	"depends": {
+		"fabricloader": ">=0.19.2",
+		"minecraft": "~1.21.11",
+		"java": ">=21",
+		"fabric-api": "*",
+		"fabric-language-kotlin": "*",
+		"owo": ">=0.13.0"
+	}
+}
