@@ -17,7 +17,7 @@ abstract class TitleScreenMixin: Screen(Component.literal("")) {
     private fun onInit(info: CallbackInfo) {
         val width = this.width/2
         val height = this.height/12
-        this.addRenderableWidget(Button.builder(Component.literal("hello"),{
+        this.addRenderableWidget(Button.builder(Component.literal("Install mods"),{
             Minecraft.getInstance().setScreen(ModificationsScreen)
         })
             .size(width,height)

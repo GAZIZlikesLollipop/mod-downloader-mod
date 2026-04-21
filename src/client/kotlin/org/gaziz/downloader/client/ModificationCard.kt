@@ -1,0 +1,123 @@
+package org.gaziz.downloader.client
+
+import io.wispforest.owo.ui.component.UIComponents
+import io.wispforest.owo.ui.container.FlowLayout
+import io.wispforest.owo.ui.container.UIContainers
+import io.wispforest.owo.ui.core.Color
+import io.wispforest.owo.ui.core.HorizontalAlignment
+import io.wispforest.owo.ui.core.Insets
+import io.wispforest.owo.ui.core.Sizing
+import io.wispforest.owo.ui.core.Surface
+import io.wispforest.owo.ui.core.VerticalAlignment
+import net.minecraft.ChatFormatting
+import net.minecraft.network.chat.Component
+import net.minecraft.resources.Identifier
+import net.minecraft.world.item.Items
+import kotlin.math.pow
+
+class ModificationCard(
+    hit: SearchHit,
+    changeProject: (String) -> Unit
+): FlowLayout(
+    Sizing.content(),
+    Sizing.content(),
+    Algorithm.HORIZONTAL
+) {
+    private fun Long.toDisplay(): String {
+        val str = this.toString()
+        return when (this) {
+            in 10000..99999 -> String.format("%.2fK",this/10.0.pow(3))
+            in 100000..999999 -> String.format("%.2fK",this/10.0.pow(3))
+            in 1000000..99999999 -> String.format("%.2fM",this/10.0.pow(6))
+            in 10000000..999999999 -> String.format("%.2fM",this/10.0.pow(6))
+            in 100000000..9999999999 -> String.format("%.2fM",this/10.0.pow(6))
+            else -> str
+        }
+    }
+    init {
+        var modType = ""
+        if(hit.clint_side == "optional" || hit.clint_side == "required") {
+            modType = "Client, "
+        }
+        if(hit.server_side == "optional" || hit.server_side == "required") {
+            modType += "Server"
+        } else {
+            modType.dropLast(2)
+        }
+
+        this.surface(Surface.TOOLTIP)
+        this.padding(Insets.of(16))
+        this.verticalAlignment(VerticalAlignment.CENTER)
+        this.gap(12)
+
+        this.child(
+            UIComponents.texture(
+                Identifier.fromNamespaceAndPath(
+                    "minecraft",
+                    "textures/gui/light_loading_progress.png"),
+                0,
+                0,
+                64,
+                64,
+                64,
+                64
+            )
+                .sizing(Sizing.fixed(32))
+        )
+
+        this.child(
+            UIContainers.verticalFlow(Sizing.fill(65), Sizing.content())
+                .child(
+                    UIContainers.horizontalFlow(Sizing.content(), Sizing.content())
+                        .child(UIComponents.label(Component.literal(hit.title)))
+                        .child(
+                            UIComponents
+                                .label(Component.literal(" by ${hit.author}"))
+                                .color(Color.ofFormatting(ChatFormatting.GRAY))
+                        )
+                )
+                .child(
+                    UIComponents
+                        .label(Component.literal(hit.description))
+                        .color(Color.ofFormatting(ChatFormatting.GRAY))
+                )
+                .child(
+                    UIComponents
+                        .label(Component.literal(modType))
+                        .color(Color.ofFormatting(ChatFormatting.DARK_GRAY))
+                )
+                .gap(4)
+        )
+        this.child(
+            UIContainers.verticalFlow(
+                Sizing.fill(25),
+                Sizing.content()
+            )
+                .child(
+                    UIContainers.horizontalFlow(Sizing.content(), Sizing.content())
+                        .child(UIComponents.item(Items.HOPPER.defaultInstance).sizing(Sizing.fixed(10)))
+                        .child(UIComponents.label(Component.literal(hit.downloads.toDisplay())))
+                        .child(UIComponents.item(Items.NETHER_STAR.defaultInstance).sizing(Sizing.fixed(10)))
+                        .child(UIComponents.label(Component.literal(hit.follows.toDisplay())))
+                        .gap(2)
+                        .verticalAlignment(VerticalAlignment.CENTER)
+                )
+                .child(
+                    UIContainers.horizontalFlow(Sizing.content(), Sizing.content())
+                        .child(UIComponents.item(Items.CLOCK.defaultInstance).sizing(Sizing.fixed(10)))
+                        .child(
+                            UIComponents
+                                .label(Component.literal(hit.date_modified))
+                                .color(Color.ofFormatting(ChatFormatting.GRAY))
+                        )
+                        .gap(2)
+                )
+                .child(UIComponents.label(Component.literal(" ")))
+                .gap(4)
+        )
+        this.mouseDown().subscribe { _, bool ->
+            changeProject(hit.project_id)
+            bool
+        }
+    }
+}
