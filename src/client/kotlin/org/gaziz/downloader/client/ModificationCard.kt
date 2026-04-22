@@ -3,16 +3,15 @@ package org.gaziz.downloader.client
 import io.wispforest.owo.ui.component.UIComponents
 import io.wispforest.owo.ui.container.FlowLayout
 import io.wispforest.owo.ui.container.UIContainers
-import io.wispforest.owo.ui.core.Color
-import io.wispforest.owo.ui.core.HorizontalAlignment
-import io.wispforest.owo.ui.core.Insets
-import io.wispforest.owo.ui.core.Sizing
-import io.wispforest.owo.ui.core.Surface
-import io.wispforest.owo.ui.core.VerticalAlignment
+import io.wispforest.owo.ui.core.*
 import net.minecraft.ChatFormatting
 import net.minecraft.network.chat.Component
 import net.minecraft.resources.Identifier
 import net.minecraft.world.item.Items
+import org.gaziz.downloader.Moddownloadermod
+import java.time.Duration
+import java.time.Instant
+import java.time.OffsetDateTime
 import kotlin.math.pow
 
 class ModificationCard(
@@ -23,6 +22,45 @@ class ModificationCard(
     Sizing.content(),
     Algorithm.HORIZONTAL
 ) {
+    private fun formatTimeAgo(isoTimestamp: String): String {
+        return try {
+            val past = OffsetDateTime.parse(isoTimestamp).toInstant()
+            val now = Instant.now()
+            val seconds = Duration.between(past, now).seconds
+
+            when {
+                seconds < 60 -> "just now"
+                seconds < 3600 -> {
+                    val minutes = seconds / 60
+                    if (minutes == 1L) "1 minute ago" else "$minutes minutes ago"
+                }
+                seconds < 86400 -> {
+                    val hours = seconds / 3600
+                    if (hours == 1L) "1 hour ago" else "$hours hours ago"
+                }
+                seconds < 172800 -> "yesterday"
+                seconds < 604800 -> {
+                    val days = seconds / 86400
+                    "$days days ago"
+                }
+                seconds < 1209600 -> "last week"
+                seconds < 2592000 -> {
+                    val weeks = seconds / 604800
+                    "$weeks weeks ago"
+                }
+                seconds < 31536000 -> {
+                    val months = seconds / 2592000
+                    if (months == 1L) "last month" else "$months months ago"
+                }
+                else -> {
+                    val years = seconds / 31536000
+                    if (years == 1L) "last year" else "$years years ago"
+                }
+            }
+        } catch (_: Exception) {
+            "unknown date"
+        }
+    }
     private fun Long.toDisplay(): String {
         val str = this.toString()
         return when (this) {
@@ -36,13 +74,13 @@ class ModificationCard(
     }
     init {
         var modType = ""
-        if(hit.clint_side == "optional" || hit.clint_side == "required") {
+        if(hit.client_side == "optional" || hit.client_side == "required") {
             modType = "Client, "
         }
         if(hit.server_side == "optional" || hit.server_side == "required") {
             modType += "Server"
         } else {
-            modType.dropLast(2)
+            modType = modType.dropLast(2)
         }
 
         this.surface(Surface.TOOLTIP)
@@ -53,8 +91,8 @@ class ModificationCard(
         this.child(
             UIComponents.texture(
                 Identifier.fromNamespaceAndPath(
-                    "minecraft",
-                    "textures/gui/light_loading_progress.png"),
+                    Moddownloadermod.MOD_ID,
+                    "textures/default-mod-icon.png"),
                 0,
                 0,
                 64,
@@ -107,12 +145,23 @@ class ModificationCard(
                         .child(UIComponents.item(Items.CLOCK.defaultInstance).sizing(Sizing.fixed(10)))
                         .child(
                             UIComponents
-                                .label(Component.literal(hit.date_modified))
+                                .label(Component.literal(formatTimeAgo(hit.date_modified)))
                                 .color(Color.ofFormatting(ChatFormatting.GRAY))
                         )
                         .gap(2)
+                        .verticalAlignment(VerticalAlignment.CENTER)
                 )
-                .child(UIComponents.label(Component.literal(" ")))
+                .child(
+                    UIContainers.horizontalFlow(Sizing.content(), Sizing.content())
+                        .child(UIComponents.item(Items.GLASS_BOTTLE.defaultInstance).sizing(Sizing.fixed(10)))
+                        .child(
+                            UIComponents
+                                .label(Component.literal("Not installed"))
+                                .color(Color.ofFormatting(ChatFormatting.RED))
+                        )
+                        .gap(2)
+                        .verticalAlignment(VerticalAlignment.CENTER)
+                )
                 .gap(4)
         )
         this.mouseDown().subscribe { _, bool ->

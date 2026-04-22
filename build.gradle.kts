@@ -4,13 +4,13 @@ plugins {
 	id("net.fabricmc.fabric-loom-remap")
 	`maven-publish`
 	id("org.jetbrains.kotlin.jvm") version "2.3.20"
+	kotlin("plugin.serialization") version "2.3.20"
 }
 
 version = providers.gradleProperty("mod_version").get()
 group = providers.gradleProperty("maven_group").get()
 repositories {
 	maven { url = uri("https://maven.wispforest.io/releases/") }
-	// since owo 0.13.0, jitpack is required for kdl4j
 	maven { url = uri("https://jitpack.io") }
 }
 
@@ -38,6 +38,12 @@ dependencies {
 	//OWO lib
 	modImplementation("io.wispforest:owo-lib:0.13.0+1.21.11")
 	include("io.wispforest:owo-sentinel:0.13.0+1.21.11")
+	//Ktor
+	implementation("io.ktor:ktor-client-core:3.4.2")
+	implementation("io.ktor:ktor-client-cio:3.4.2")
+	implementation("io.ktor:ktor-client-content-negotiation:3.4.2")
+	implementation("io.ktor:ktor-serialization-kotlinx-json:3.4.2")
+	implementation("io.ktor:ktor-client-logging:3.4.2")
 }
 
 tasks.processResources {
