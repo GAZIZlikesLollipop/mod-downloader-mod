@@ -19,7 +19,7 @@ import kotlin.math.pow
 class ModificationCard(
     hit: SearchHit,
     project: Observable<String?>,
-//    texturePath: Observable<String>,
+    texturePath: Observable<String>,
     changeProject: (String) -> Unit,
 ): FlowLayout(
     Sizing.content(),
@@ -76,15 +76,7 @@ class ModificationCard(
             else -> str
         }
     }
-    private val texturePath = "[a-z0-9/._-]"
-        .toRegex()
-        .findAll(
-            hit.title
-                .lowercase()
-                .replace(" ","-"),
-            0
-        )
-        .joinToString("") { it.value }
+
     init {
         var modType = ""
         if(hit.client_side == "optional" || hit.client_side == "required") {
@@ -101,11 +93,11 @@ class ModificationCard(
         this.verticalAlignment(VerticalAlignment.CENTER)
         this.gap(12)
 
-        this.child(
+        val lastChild =
             texture(
                 Identifier.fromNamespaceAndPath(
                     Moddownloadermod.MOD_ID,
-                    texturePath
+                    texturePath.get()
                 ),
                 0,
                 0,
@@ -113,31 +105,29 @@ class ModificationCard(
                 64,
                 64,
                 64
-            )
-                .sizing(Sizing.fixed(32))
-        )
+            ).sizing(Sizing.fixed(32))
 
-//        var lastChild: UIComponent? = null
-//        texturePath.observe {
-//            if(lastChild != null) {
-//                this.removeChild(lastChild)
-//            }
-//            lastChild = this.child(
-//                texture(
-//                    Identifier.fromNamespaceAndPath(
-//                        Moddownloadermod.MOD_ID,
-//                        it
-//                    ),
-//                    0,
-//                    0,
-//                    64,
-//                    64,
-//                    64,
-//                    64
-//                )
-//                    .sizing(Sizing.fixed(32))
-//            )
-//        }
+        this.child(lastChild)
+
+        texturePath.observe {
+            this.removeChild(lastChild)
+            this.child(
+                0,
+                texture(
+                    Identifier.fromNamespaceAndPath(
+                        Moddownloadermod.MOD_ID,
+                        it
+                    ),
+                    0,
+                    0,
+                    64,
+                    64,
+                    64,
+                    64
+                )
+                    .sizing(Sizing.fixed(32))
+            )
+        }
 
         this.child(
             UIContainers.verticalFlow(Sizing.fill(65), Sizing.content())

@@ -18,7 +18,6 @@ import javax.imageio.ImageReader
 @Serializable
 data class SearchHit(
     val project_id: String,
-    val versions: List<String>,
 
     val title: String,
     val description: String,
@@ -60,8 +59,7 @@ object DownloaderClient {
             reader.input = ImageIO.createImageInputStream(rawBytes.inputStream())
             reader.read(0, param)
         } else {
-            ImageIO.read(rawBytes.inputStream())
-                ?: throw kotlinx.io.IOException("Cannot decode image")
+            ImageIO.read(rawBytes.inputStream()) ?: throw kotlinx.io.IOException("Cannot decode image")
         }
 
         val width = bufferedImage.width
@@ -70,7 +68,6 @@ object DownloaderClient {
 
         for (y in 0 until height) {
             for (x in 0 until width) {
-                // getRGB возвращает ARGB
                 nativeImage.setPixel(x, y, bufferedImage.getRGB(x, y))
             }
         }
@@ -86,7 +83,7 @@ object DownloaderClient {
             .get(
                 "https://api.modrinth.com/v2/search",
                 {
-                    parameter("facets", "[[\"project_type:mod\"]]")
+                    parameter("facets", "[[\"project_type:mod\"],[\"versions:1.21.11\"],[\"categories:fabric\"]]")
                     parameter("query", query)
                     parameter("limit", limit)
                 }
