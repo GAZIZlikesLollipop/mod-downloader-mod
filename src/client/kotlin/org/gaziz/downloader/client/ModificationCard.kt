@@ -1,9 +1,11 @@
 package org.gaziz.downloader.client
 
 import io.wispforest.owo.ui.component.UIComponents
+import io.wispforest.owo.ui.component.UIComponents.texture
 import io.wispforest.owo.ui.container.FlowLayout
 import io.wispforest.owo.ui.container.UIContainers
 import io.wispforest.owo.ui.core.*
+import io.wispforest.owo.util.Observable
 import net.minecraft.ChatFormatting
 import net.minecraft.network.chat.Component
 import net.minecraft.resources.Identifier
@@ -16,7 +18,9 @@ import kotlin.math.pow
 
 class ModificationCard(
     hit: SearchHit,
-    changeProject: (String) -> Unit
+    project: Observable<String?>,
+//    texturePath: Observable<String>,
+    changeProject: (String) -> Unit,
 ): FlowLayout(
     Sizing.content(),
     Sizing.content(),
@@ -72,6 +76,15 @@ class ModificationCard(
             else -> str
         }
     }
+    private val texturePath = "[a-z0-9/._-]"
+        .toRegex()
+        .findAll(
+            hit.title
+                .lowercase()
+                .replace(" ","-"),
+            0
+        )
+        .joinToString("") { it.value }
     init {
         var modType = ""
         if(hit.client_side == "optional" || hit.client_side == "required") {
@@ -89,10 +102,11 @@ class ModificationCard(
         this.gap(12)
 
         this.child(
-            UIComponents.texture(
+            texture(
                 Identifier.fromNamespaceAndPath(
                     Moddownloadermod.MOD_ID,
-                    "textures/default-mod-icon.png"),
+                    texturePath
+                ),
                 0,
                 0,
                 64,
@@ -102,6 +116,28 @@ class ModificationCard(
             )
                 .sizing(Sizing.fixed(32))
         )
+
+//        var lastChild: UIComponent? = null
+//        texturePath.observe {
+//            if(lastChild != null) {
+//                this.removeChild(lastChild)
+//            }
+//            lastChild = this.child(
+//                texture(
+//                    Identifier.fromNamespaceAndPath(
+//                        Moddownloadermod.MOD_ID,
+//                        it
+//                    ),
+//                    0,
+//                    0,
+//                    64,
+//                    64,
+//                    64,
+//                    64
+//                )
+//                    .sizing(Sizing.fixed(32))
+//            )
+//        }
 
         this.child(
             UIContainers.verticalFlow(Sizing.fill(65), Sizing.content())
@@ -128,7 +164,7 @@ class ModificationCard(
         )
         this.child(
             UIContainers.verticalFlow(
-                Sizing.fill(25),
+                Sizing.fill(21),
                 Sizing.content()
             )
                 .child(
@@ -166,7 +202,26 @@ class ModificationCard(
         )
         this.mouseDown().subscribe { _, bool ->
             changeProject(hit.project_id)
+            this.surface(Surface.DARK_PANEL)
             bool
+        }
+        this.mouseEnter().subscribe {
+            this.surface(Surface.DARK_PANEL)
+        }
+        project.observe { p ->
+           if(p != hit.project_id)  {
+               this.surface(Surface.TOOLTIP)
+           }
+        }
+        this.mouseLeave().subscribe {
+            val project = project.get()
+            if(project != null) {
+                if(project != hit.project_id) {
+                    this.surface(Surface.TOOLTIP)
+                }
+            } else {
+                this.surface(Surface.TOOLTIP)
+            }
         }
     }
 }

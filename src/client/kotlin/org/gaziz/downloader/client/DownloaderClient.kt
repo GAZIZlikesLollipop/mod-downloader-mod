@@ -1,17 +1,19 @@
 package org.gaziz.downloader.client
 
+import com.luciad.imageio.webp.WebPReadParam
+import com.mojang.blaze3d.platform.NativeImage
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.contentnegotiation.*
-import io.ktor.client.plugins.logging.*
 import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import org.gaziz.downloader.Moddownloadermod
-import org.slf4j.LoggerFactory
+import javax.imageio.ImageIO
+import javax.imageio.ImageReader
 
 @Serializable
 data class SearchHit(
@@ -41,24 +43,52 @@ val json = Json {
 }
 
 object DownloaderClient {
-    private val logger = LoggerFactory.getLogger(Moddownloadermod.MOD_ID)
-    val client =  HttpClient(CIO){
+    private val client =  HttpClient(CIO){
         install(ContentNegotiation) {
             json(json)
         }
-        install(Logging) {
-            logger = object : Logger {
-                override fun log(message: String) {this@DownloaderClient.logger.info(message)}
-            }
-            level = LogLevel.ALL
-        }
     }
-    suspend fun search(query: String): SearchResponse {
+
+    suspend fun downloadPhoto(url: String): NativeImage {
+        val rawBytes = client.get(url).bodyAsBytes()
+        val contentType = client.get(url).headers["Content-Type"] ?: ""
+
+        val bufferedImage = if (contentType.contains("webp")) {
+            val reader: ImageReader = ImageIO.getImageReadersByMIMEType("image/webp").next()
+            val param = reader.defaultReadParam as WebPReadParam
+            param.isBypassFiltering = true
+            reader.input = ImageIO.createImageInputStream(rawBytes.inputStream())
+            reader.read(0, param)
+        } else {
+            ImageIO.read(rawBytes.inputStream())
+                ?: throw kotlinx.io.IOException("Cannot decode image")
+        }
+
+        val width = bufferedImage.width
+        val height = bufferedImage.height
+        val nativeImage = NativeImage(NativeImage.Format.RGBA, width, height, false)
+
+        for (y in 0 until height) {
+            for (x in 0 until width) {
+                // getRGB возвращает ARGB
+                nativeImage.setPixel(x, y, bufferedImage.getRGB(x, y))
+            }
+        }
+
+        return nativeImage
+    }
+
+    suspend fun search(
+        query: String,
+        limit: Int = 10
+    ): SearchResponse {
         return client
             .get(
-                "https://api.modrinth.com/v2/search?query=$query&limit=100",
+                "https://api.modrinth.com/v2/search",
                 {
                     parameter("facets", "[[\"project_type:mod\"]]")
+                    parameter("query", query)
+                    parameter("limit", limit)
                 }
             )
             .body<SearchResponse>()
