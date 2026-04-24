@@ -12,6 +12,8 @@ import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import net.minecraft.client.Minecraft
+import java.io.File
 import javax.imageio.ImageIO
 import javax.imageio.ImageReader
 
@@ -33,6 +35,19 @@ data class SearchHit(
 @Serializable
 data class SearchResponse(
     @SerialName("hits") val hits: List<SearchHit>
+)
+
+@Serializable
+data class VersionFile(
+    val url: String,
+    val primary: Boolean
+)
+
+@Serializable
+data class VersionInfo(
+    val id: String,
+    val files: List<VersionFile>,
+    val status: String
 )
 
 val json = Json {
@@ -89,5 +104,37 @@ object DownloaderClient {
                 }
             )
             .body<SearchResponse>()
+    }
+
+    suspend fun downloadMod(
+        projectId: String,
+        fileName: String
+    ): Exception? {
+        val versions = client.get(
+            "https://api.modrinth.com/v2/project/$projectId/version"
+        ) {
+            parameter("loaders","[\"fabric\"]")
+            parameter("game_versions","[\"1.21.11\"]")
+            parameter("include_changelog", false)
+        }.body<List<VersionInfo>>()
+        for(version in versions) {
+            if(
+                version.status == "listed" ||
+                version.status == "archived"
+            ) {
+                for(vFile in version.files) {
+                    if(vFile.primary) {
+                        try {
+                            val file = File("${Minecraft.getInstance().gameDirectory.path}/mods/${fileName}.jar")
+                            file.writeBytes(client.get(vFile.url).bodyAsBytes())
+                            return null
+                        } catch (e: Exception) {
+                            return e
+                        }
+                    }
+                }
+            }
+        }
+        return Exception("Mod files not found")
     }
 }

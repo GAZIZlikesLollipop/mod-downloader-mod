@@ -17,13 +17,13 @@
 	"entrypoints": {
 		"main": [
 			{
-				"value": "org.gaziz.downloader.Moddownloadermod",
+				"value": "org.gaziz.downloader.ModDownloader",
 				"adapter": "kotlin"
 			}
 		],
 		"client": [
 			{
-				"value": "org.gaziz.downloader.client.ModdownloadermodClient",
+				"value": "org.gaziz.downloader.client.ModDownloaderClient",
 				"adapter": "kotlin"
 			}
 		]

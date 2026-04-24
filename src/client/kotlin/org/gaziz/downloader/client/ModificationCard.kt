@@ -10,7 +10,7 @@ import net.minecraft.ChatFormatting
 import net.minecraft.network.chat.Component
 import net.minecraft.resources.Identifier
 import net.minecraft.world.item.Items
-import org.gaziz.downloader.Moddownloadermod
+import org.gaziz.downloader.ModDownloader
 import java.time.Duration
 import java.time.Instant
 import java.time.OffsetDateTime
@@ -20,6 +20,7 @@ class ModificationCard(
     hit: SearchHit,
     project: Observable<String?>,
     texturePath: Observable<String>,
+    isInstalled: Observable<Boolean>,
     changeProject: (String) -> Unit,
 ): FlowLayout(
     Sizing.content(),
@@ -96,7 +97,7 @@ class ModificationCard(
         val lastChild =
             texture(
                 Identifier.fromNamespaceAndPath(
-                    Moddownloadermod.MOD_ID,
+                    ModDownloader.MOD_ID,
                     texturePath.get()
                 ),
                 0,
@@ -115,7 +116,7 @@ class ModificationCard(
                 0,
                 texture(
                     Identifier.fromNamespaceAndPath(
-                        Moddownloadermod.MOD_ID,
+                        ModDownloader.MOD_ID,
                         it
                     ),
                     0,
@@ -152,6 +153,28 @@ class ModificationCard(
                 )
                 .gap(4)
         )
+
+        val notInstalled = UIContainers
+            .horizontalFlow(Sizing.content(), Sizing.content())
+            .child(UIComponents.item(Items.GLASS_BOTTLE.defaultInstance).sizing(Sizing.fixed(10)))
+            .child(
+                UIComponents
+                    .label(Component.literal("Not installed"))
+                    .color(Color.ofFormatting(ChatFormatting.RED))
+            )
+            .gap(2)
+            .verticalAlignment(VerticalAlignment.CENTER)
+        val installed = UIContainers
+            .horizontalFlow(Sizing.content(), Sizing.content())
+            .child(UIComponents.item(Items.EXPERIENCE_BOTTLE.defaultInstance).sizing(Sizing.fixed(10)))
+            .child(
+                UIComponents
+                    .label(Component.literal("Installed"))
+                    .color(Color.ofFormatting(ChatFormatting.GREEN))
+            )
+            .gap(2)
+            .verticalAlignment(VerticalAlignment.CENTER)
+
         this.child(
             UIContainers.verticalFlow(
                 Sizing.fill(21),
@@ -176,18 +199,22 @@ class ModificationCard(
                         )
                         .gap(2)
                         .verticalAlignment(VerticalAlignment.CENTER)
-                )
-                .child(
-                    UIContainers.horizontalFlow(Sizing.content(), Sizing.content())
-                        .child(UIComponents.item(Items.GLASS_BOTTLE.defaultInstance).sizing(Sizing.fixed(10)))
-                        .child(
-                            UIComponents
-                                .label(Component.literal("Not installed"))
-                                .color(Color.ofFormatting(ChatFormatting.RED))
-                        )
-                        .gap(2)
-                        .verticalAlignment(VerticalAlignment.CENTER)
-                )
+                ).apply {
+                    if(isInstalled.get()) {
+                        child(installed)
+                    } else {
+                        child(notInstalled)
+                    }
+                    isInstalled.observe {
+                        if(it) {
+                            removeChild(notInstalled)
+                            child(installed)
+                        } else {
+                            removeChild(installed)
+                            child(notInstalled)
+                        }
+                    }
+                }
                 .gap(4)
         )
         this.mouseDown().subscribe { _, bool ->
