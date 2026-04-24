@@ -1,4 +1,4 @@
-package org.gaziz.downloader.client
+package org.gaziz.modrinthdirect.client
 
 import io.wispforest.owo.ui.base.BaseOwoScreen
 import io.wispforest.owo.ui.component.UIComponents
@@ -17,14 +17,13 @@ import net.minecraft.client.renderer.texture.DynamicTexture
 import net.minecraft.network.chat.Component
 import net.minecraft.resources.Identifier
 import net.minecraft.world.item.Items
-import org.gaziz.downloader.ModDownloader
+import org.gaziz.modrinthdirect.ModrinthDirect
 import org.slf4j.LoggerFactory
 import java.nio.file.*
 import kotlin.io.path.name
 import kotlin.time.Duration.Companion.milliseconds
 
 object ModificationsScreen: BaseOwoScreen<FlowLayout>() {
-    private val logger = LoggerFactory.getLogger(ModDownloader.MOD_ID)
     override fun createAdapter(): OwoUIAdapter<FlowLayout> {
         return OwoUIAdapter.create(this, UIContainers::verticalFlow)
     }
@@ -71,7 +70,7 @@ object ModificationsScreen: BaseOwoScreen<FlowLayout>() {
                         val searchResp = DownloaderClient.search("")
                         if(searchResp.hits.isNotEmpty()) {
                             for(hit in searchResp.hits) {
-                                val fileName = "[a-z0-9/._-]"
+                                var fileName = "[a-z0-9/._-]"
                                     .toRegex()
                                     .findAll(
                                         hit.title
@@ -80,6 +79,7 @@ object ModificationsScreen: BaseOwoScreen<FlowLayout>() {
                                         0
                                     )
                                     .joinToString("") { it.value }
+
                                 val texturePath: Observable<String> = Observable.of("textures/default-mod-icon.png")
                                 val isInstalled: Observable<Boolean> = Observable.of(false)
                                 Minecraft.getInstance().execute {
@@ -90,7 +90,6 @@ object ModificationsScreen: BaseOwoScreen<FlowLayout>() {
                                     Files.list(modsDir).use { files ->
                                         files.forEach { f ->
                                             if("$fileName.jar" == f.name) {
-                                                logger.info("thats it!!!!!!!?!?!?!??!?!?")
                                                 isInstalled.set(true)
                                             }
                                         }
@@ -104,41 +103,50 @@ object ModificationsScreen: BaseOwoScreen<FlowLayout>() {
                                         ) {
                                             project.set(it)
                                             installBtn.onPress {
-                                                val installToast = SystemToast(
-                                                    SystemToast.SystemToastId.PERIODIC_NOTIFICATION,
-                                                    Component.literal("Mod Downloader"),
-                                                    Component.literal("Downloading ${hit.title}")
-                                                )
-                                                toastManager.addToast(installToast)
                                                 installBtn.active(false)
                                                 project.set(null)
-                                                CoroutineScope(Dispatchers.IO).launch {
-                                                    val result = DownloaderClient.downloadMod(
-                                                        hit.project_id,
-                                                        fileName
+                                                if(!isInstalled.get()){
+                                                    val installToast = SystemToast(
+                                                        SystemToast.SystemToastId.PERIODIC_NOTIFICATION,
+                                                        Component.literal("Modrinth Direct"),
+                                                        Component.literal("Downloading ${hit.title}")
                                                     )
-                                                    if(result != null) {
-                                                        val noFilesToast = SystemToast(
-                                                            SystemToast.SystemToastId.PERIODIC_NOTIFICATION,
-                                                            Component.literal("Mod Downloader"),
-                                                            Component.literal(result.message ?: "Download Error")
+                                                    toastManager.addToast(installToast)
+                                                    CoroutineScope(Dispatchers.IO).launch {
+                                                        val result = DownloaderClient.downloadMod(
+                                                            hit.project_id,
+                                                            fileName
                                                         )
-                                                        toastManager.addToast(noFilesToast)
-                                                    } else {
-                                                        val installedToast = SystemToast(
-                                                           SystemToast.SystemToastId.PERIODIC_NOTIFICATION,
-                                                           Component.literal("Mod Downloader"),
-                                                           Component.literal("${hit.title} successfully installed")
-                                                        )
-                                                        val alertToast = SystemToast(
-                                                            SystemToast.SystemToastId.PERIODIC_NOTIFICATION,
-                                                            Component.literal("Mod Downloader"),
-                                                            Component.literal("Restart the game to enable the mod")
-                                                        )
-                                                        toastManager.addToast(installedToast)
-                                                        delay(2000.milliseconds)
-                                                        toastManager.addToast(alertToast)
+                                                        if (result != null) {
+                                                            val noFilesToast = SystemToast(
+                                                                SystemToast.SystemToastId.PERIODIC_NOTIFICATION,
+                                                                Component.literal("Modrinth Direct"),
+                                                                Component.literal(result.message ?: "Download Error")
+                                                            )
+                                                            toastManager.addToast(noFilesToast)
+                                                        } else {
+                                                            val installedToast = SystemToast(
+                                                                SystemToast.SystemToastId.PERIODIC_NOTIFICATION,
+                                                                Component.literal("Modrinth Direct"),
+                                                                Component.literal("${hit.title} successfully installed")
+                                                            )
+                                                            val alertToast = SystemToast(
+                                                                SystemToast.SystemToastId.PERIODIC_NOTIFICATION,
+                                                                Component.literal("Modrinth Direct"),
+                                                                Component.literal("Restart the game to enable the mod")
+                                                            )
+                                                            toastManager.addToast(installedToast)
+                                                            delay(2000.milliseconds)
+                                                            toastManager.addToast(alertToast)
+                                                        }
                                                     }
+                                                } else {
+                                                    val installedToast = SystemToast(
+                                                        SystemToast.SystemToastId.PERIODIC_NOTIFICATION,
+                                                        Component.literal("Modrinth Direct"),
+                                                        Component.literal("Mod is already installed")
+                                                    )
+                                                    toastManager.addToast(installedToast)
                                                 }
                                             }
                                             installBtn.active(true)
@@ -149,36 +157,47 @@ object ModificationsScreen: BaseOwoScreen<FlowLayout>() {
                                             val key = watchService.take()
                                             for(event in key.pollEvents()) {
                                                 val newEvent = event as WatchEvent<Path>
+                                                val logger = LoggerFactory.getLogger(ModrinthDirect.MOD_ID)
+                                                logger.info("$fileName ${newEvent.context().name}")
                                                 if("$fileName.jar" == newEvent.context().name) {
                                                     if(event.kind() === StandardWatchEventKinds.ENTRY_CREATE) {
                                                         isInstalled.set(true)
                                                     } else {
                                                         isInstalled.set(false)
                                                     }
+//                                                    break
                                                 }
                                             }
                                         }
                                     }
 
-                                }
-
-                                CoroutineScope(Dispatchers.IO).launch {
-
-                                    val texId = Identifier.fromNamespaceAndPath(ModDownloader.MOD_ID,fileName)
-                                    val nativeImage = DownloaderClient.downloadPhoto(hit.icon_url)
-
-                                    Minecraft.getInstance().execute {
-                                        val dynTex = DynamicTexture({ fileName }, nativeImage)
-
-                                        Minecraft.getInstance().textureManager
-                                            .register(
-                                                texId,
-                                                dynTex
+                                    CoroutineScope(Dispatchers.IO).launch {
+                                        fileName = "[a-z0-9/._-]"
+                                            .toRegex()
+                                            .findAll(
+                                                hit.title
+                                                    .lowercase()
+                                                    .replace(" ","-"),
+                                                0
                                             )
+                                            .joinToString("") { it.value }
+                                        val texId = Identifier.fromNamespaceAndPath(ModrinthDirect.MOD_ID,fileName)
+                                        val nativeImage = DownloaderClient.downloadPhoto(hit.icon_url)
 
-                                        texturePath.set(fileName)
+                                        Minecraft.getInstance().execute {
+                                            val dynTex = DynamicTexture({ fileName }, nativeImage)
+
+                                            Minecraft.getInstance().textureManager
+                                                .register(
+                                                    texId,
+                                                    dynTex
+                                                )
+
+                                            texturePath.set(fileName)
+                                        }
                                     }
                                 }
+
                             }
                         } else {
                             Minecraft.getInstance().execute {

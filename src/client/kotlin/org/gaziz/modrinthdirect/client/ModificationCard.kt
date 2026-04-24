@@ -1,4 +1,4 @@
-package org.gaziz.downloader.client
+package org.gaziz.modrinthdirect.client
 
 import io.wispforest.owo.ui.component.UIComponents
 import io.wispforest.owo.ui.component.UIComponents.texture
@@ -10,7 +10,7 @@ import net.minecraft.ChatFormatting
 import net.minecraft.network.chat.Component
 import net.minecraft.resources.Identifier
 import net.minecraft.world.item.Items
-import org.gaziz.downloader.ModDownloader
+import org.gaziz.modrinthdirect.ModrinthDirect
 import java.time.Duration
 import java.time.Instant
 import java.time.OffsetDateTime
@@ -97,7 +97,7 @@ class ModificationCard(
         val lastChild =
             texture(
                 Identifier.fromNamespaceAndPath(
-                    ModDownloader.MOD_ID,
+                    ModrinthDirect.MOD_ID,
                     texturePath.get()
                 ),
                 0,
@@ -116,7 +116,7 @@ class ModificationCard(
                 0,
                 texture(
                     Identifier.fromNamespaceAndPath(
-                        ModDownloader.MOD_ID,
+                        ModrinthDirect.MOD_ID,
                         it
                     ),
                     0,

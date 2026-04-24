@@ -1,37 +1,37 @@
 {
 	"schemaVersion": 1,
-	"id": "mod-downloader-mod",
+	"id": "modrinth-direct",
 	"version": "${version}",
-	"name": "mod-downloader-mod",
-	"description": "This is an example description! Tell everyone what your mod is about!",
+	"name": "Modrinth Direct",
+	"description": "Automates mod discovery and installation using the Modrinth API.",
 	"authors": [
-		"Me!"
+		"Gaziz"
 	],
 	"contact": {
 		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
+		"sources": "https://github.com/GAZIZlikesLollipop/modrinth-direct"
 	},
 	"license": "CC0-1.0",
-	"icon": "assets/mod-downloader-mod/icon.png",
+	"icon": "assets/modrinth-direct/icon.png",
 	"environment": "*",
 	"entrypoints": {
 		"main": [
 			{
-				"value": "org.gaziz.downloader.ModDownloader",
+				"value": "org.gaziz.modrinthdirect.ModrinthDirect",
 				"adapter": "kotlin"
 			}
 		],
 		"client": [
 			{
-				"value": "org.gaziz.downloader.client.ModDownloaderClient",
+				"value": "org.gaziz.modrinthdirect.client.ModrinthDirectClient",
 				"adapter": "kotlin"
 			}
 		]
 	},
 	"mixins": [
-		"mod-downloader-mod.mixins.json",
+		"modrinth-direct.mixins.json",
 		{
-			"config": "mod-downloader-mod.client.mixins.json",
+			"config": "modrinth-direct.client.mixins.json",
 			"environment": "client"
 		}
 	],
@@ -40,7 +40,6 @@
 		"minecraft": "~1.21.11",
 		"java": ">=21",
 		"fabric-api": "*",
-		"fabric-language-kotlin": "*",
-		"owo": ">=0.13.0"
+		"fabric-language-kotlin": "*"
 	}
 }

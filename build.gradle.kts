@@ -3,12 +3,13 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
 	id("net.fabricmc.fabric-loom-remap")
 	`maven-publish`
-	id("org.jetbrains.kotlin.jvm") version "2.3.20"
+	id("org.jetbrains.kotlin.jvm") version "2.3.21"
 	kotlin("plugin.serialization") version "2.3.20"
 }
 
 version = providers.gradleProperty("mod_version").get()
 group = providers.gradleProperty("maven_group").get()
+
 repositories {
 	maven { url = uri("https://maven.wispforest.io/releases/") }
 	maven { url = uri("https://jitpack.io") }
@@ -18,7 +19,7 @@ loom {
 	splitEnvironmentSourceSets()
 
 	mods {
-		register("mod-downloader-mod") {
+		register("modrinth-direct") {
 			sourceSet(sourceSets.main.get())
 			sourceSet(sourceSets.getByName("client"))
 		}

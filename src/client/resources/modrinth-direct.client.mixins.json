@@ -1,6 +1,6 @@
 {
 	"required": true,
-	"package": "org.gaziz.downloader.client.mixin",
+	"package": "org.gaziz.modrinthdirect.client.mixin",
 	"compatibilityLevel": "JAVA_21",
 	"client": [
 		"TitleScreenMixin"

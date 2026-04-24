@@ -1,6 +1,6 @@
 {
 	"required": true,
-	"package": "org.gaziz.downloader.mixin",
+	"package": "org.gaziz.modrinthdirect.mixin",
 	"compatibilityLevel": "JAVA_21",
 	"mixins": [
 		"ExampleMixin"

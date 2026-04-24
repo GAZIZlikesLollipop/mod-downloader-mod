@@ -1,4 +1,4 @@
-# mod-downloader-mod
+# Modrinth Direct
 
 ## Setup
 

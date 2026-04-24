@@ -1,4 +1,4 @@
-package org.gaziz.downloader.client
+package org.gaziz.modrinthdirect.client
 
 import com.luciad.imageio.webp.WebPReadParam
 import com.mojang.blaze3d.platform.NativeImage

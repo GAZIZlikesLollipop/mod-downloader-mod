@@ -1,11 +1,11 @@
-package org.gaziz.downloader.client
+package org.gaziz.modrinthdirect.client
 
 import net.fabricmc.api.ClientModInitializer
 import net.minecraft.client.Minecraft
 import java.nio.file.Path
 import kotlin.io.path.createDirectories
 
-object ModDownloaderClient : ClientModInitializer {
+object ModrinthDirectClient : ClientModInitializer {
 	override fun onInitializeClient() {
 		Path.of("${Minecraft.getInstance().gameDirectory.path}/mods").createDirectories()
 	}

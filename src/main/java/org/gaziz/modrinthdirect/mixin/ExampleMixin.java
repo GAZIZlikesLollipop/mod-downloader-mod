@@ -1,4 +1,4 @@
-package org.gaziz.downloader.mixin;
+package org.gaziz.modrinthdirect.mixin;
 
 import net.minecraft.server.MinecraftServer;
 import org.spongepowered.asm.mixin.Mixin;

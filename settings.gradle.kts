@@ -14,4 +14,4 @@ pluginManagement {
 }
 
 // Should match your modid
-rootProject.name = "mod-downloader-mod"
+rootProject.name = "modrinth-direct"
