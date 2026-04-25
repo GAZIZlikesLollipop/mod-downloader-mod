@@ -6,14 +6,23 @@ import io.wispforest.owo.ui.container.FlowLayout
 import io.wispforest.owo.ui.container.UIContainers
 import io.wispforest.owo.ui.core.*
 import io.wispforest.owo.util.Observable
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 import net.minecraft.ChatFormatting
 import net.minecraft.network.chat.Component
 import net.minecraft.resources.Identifier
 import net.minecraft.world.item.Items
 import org.gaziz.modrinthdirect.ModrinthDirect
+import org.slf4j.LoggerFactory
+import java.nio.file.Path
+import java.nio.file.StandardWatchEventKinds
+import java.nio.file.WatchEvent
 import java.time.Duration
 import java.time.Instant
 import java.time.OffsetDateTime
+import kotlin.io.path.name
 import kotlin.math.pow
 
 class ModificationCard(
@@ -21,6 +30,7 @@ class ModificationCard(
     project: Observable<String?>,
     texturePath: Observable<String>,
     isInstalled: Observable<Boolean>,
+    flow: MutableStateFlow<WatchEvent<*>?>,
     changeProject: (String) -> Unit,
 ): FlowLayout(
     Sizing.content(),
@@ -77,8 +87,31 @@ class ModificationCard(
             else -> str
         }
     }
+    private val formattedName = "[a-z0-9/._-]"
+        .toRegex()
+        .findAll(
+            hit.title
+                .lowercase()
+                .replace(" ","-"),
+            0
+        )
+        .joinToString("") { it.value }
 
     init {
+        CoroutineScope(Dispatchers.IO).launch {
+            flow.collect {
+                if(it != null) {
+                    val data = it as WatchEvent<Path>
+                    if("${formattedName}.jar" == data.context().name) {
+                        if(data.kind() == StandardWatchEventKinds.ENTRY_CREATE) {
+                            isInstalled.set(true)
+                        } else {
+                            isInstalled.set(false)
+                        }
+                    }
+                }
+            }
+        }
         var modType = ""
         if(hit.client_side == "optional" || hit.client_side == "required") {
             modType = "Client, "
