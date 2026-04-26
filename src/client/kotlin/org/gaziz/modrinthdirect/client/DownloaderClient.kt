@@ -9,13 +9,18 @@ import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.serialization.kotlinx.json.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import net.minecraft.client.Minecraft
 import java.io.File
+import java.nio.file.Path
 import javax.imageio.ImageIO
 import javax.imageio.ImageReader
+import kotlin.io.path.createDirectories
 
 @Serializable
 data class SearchHit(
@@ -63,6 +68,9 @@ object DownloaderClient {
         }
     }
 
+    private val _searchedMods = MutableStateFlow<List<SearchHit>>(emptyList())
+    val searchedMods: StateFlow<List<SearchHit>> = _searchedMods.asStateFlow()
+
     suspend fun downloadPhoto(url: String): NativeImage {
         val rawBytes = client.get(url).bodyAsBytes()
         val contentType = client.get(url).headers["Content-Type"] ?: ""
@@ -93,17 +101,20 @@ object DownloaderClient {
     suspend fun search(
         query: String,
         limit: Int = 10
-    ): SearchResponse {
-        return client
-            .get(
-                "https://api.modrinth.com/v2/search",
-                {
-                    parameter("facets", "[[\"project_type:mod\"],[\"versions:1.21.11\"],[\"categories:fabric\"]]")
-                    parameter("query", query)
-                    parameter("limit", limit)
-                }
-            )
-            .body<SearchResponse>()
+    ) {
+        _searchedMods.emit(
+            client
+                .get(
+                    "https://api.modrinth.com/v2/search",
+                    {
+                        parameter("facets", "[[\"project_type:mod\"],[\"versions:1.21.11\"],[\"categories:fabric\"]]")
+                        parameter("query", query)
+                        parameter("limit", limit)
+                    }
+                )
+                .body<SearchResponse>()
+                .hits
+        )
     }
 
     suspend fun downloadMod(
@@ -117,6 +128,8 @@ object DownloaderClient {
             parameter("game_versions","[\"1.21.11\"]")
             parameter("include_changelog", false)
         }.body<List<VersionInfo>>()
+        val modsDir = "${Minecraft.getInstance().gameDirectory.path}/mods"
+        val file = File("$modsDir/${fileName}.jar")
         for(version in versions) {
             if(
                 version.status == "listed" ||
@@ -125,7 +138,7 @@ object DownloaderClient {
                 for(vFile in version.files) {
                     if(vFile.primary) {
                         try {
-                            val file = File("${Minecraft.getInstance().gameDirectory.path}/mods/${fileName}.jar")
+                            Path.of(modsDir).createDirectories()
                             file.writeBytes(client.get(vFile.url).bodyAsBytes())
                             return null
                         } catch (e: Exception) {
