@@ -1,10 +1,13 @@
-package org.gaziz.modrinthdirect.client
+package org.gaziz.modrinthdirect.client.ui.components
 
 import io.wispforest.owo.ui.component.UIComponents
-import io.wispforest.owo.ui.component.UIComponents.texture
 import io.wispforest.owo.ui.container.FlowLayout
 import io.wispforest.owo.ui.container.UIContainers
-import io.wispforest.owo.ui.core.*
+import io.wispforest.owo.ui.core.Color
+import io.wispforest.owo.ui.core.Insets
+import io.wispforest.owo.ui.core.Sizing
+import io.wispforest.owo.ui.core.Surface
+import io.wispforest.owo.ui.core.VerticalAlignment
 import io.wispforest.owo.util.Observable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -15,7 +18,8 @@ import net.minecraft.network.chat.Component
 import net.minecraft.resources.Identifier
 import net.minecraft.world.item.Items
 import org.gaziz.modrinthdirect.ModrinthDirect
-import org.gaziz.modrinthdirect.client.ModificationsScreen.formatTitle
+import org.gaziz.modrinthdirect.client.api.models.SearchHit
+import org.gaziz.modrinthdirect.client.ui.ModificationsScreen
 import java.nio.file.Path
 import java.nio.file.StandardWatchEventKinds
 import java.nio.file.WatchEvent
@@ -94,7 +98,7 @@ class ModificationCard(
             flow.collect {
                 if(it != null) {
                     val data = it as WatchEvent<Path>
-                    if("${formatTitle(hit.slug)}.jar" == data.context().name) {
+                    if("${ModificationsScreen.formatTitle(hit.slug)}.jar" == data.context().name) {
                         if(data.kind() == StandardWatchEventKinds.ENTRY_CREATE) {
                             isInstalled.set(true)
                         } else {
@@ -120,7 +124,7 @@ class ModificationCard(
         this.gap(12)
 
         val lastChild =
-            texture(
+            UIComponents.texture(
                 Identifier.fromNamespaceAndPath(
                     ModrinthDirect.MOD_ID,
                     texturePath.get()
@@ -139,7 +143,7 @@ class ModificationCard(
             this.removeChild(lastChild)
             this.child(
                 0,
-                texture(
+                UIComponents.texture(
                     Identifier.fromNamespaceAndPath(
                         ModrinthDirect.MOD_ID,
                         it

@@ -1,4 +1,4 @@
-package org.gaziz.modrinthdirect.client
+package org.gaziz.modrinthdirect.client.api
 
 import com.luciad.imageio.webp.WebPReadParam
 import com.mojang.blaze3d.platform.NativeImage
@@ -12,74 +12,28 @@ import io.ktor.serialization.kotlinx.json.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import net.minecraft.client.Minecraft
-import org.gaziz.modrinthdirect.client.ModificationsScreen.formatTitle
+import org.gaziz.modrinthdirect.client.ui.ModificationsScreen.formatTitle
+import org.gaziz.modrinthdirect.client.api.models.DownloadState
+import org.gaziz.modrinthdirect.client.api.models.ProjectResp
+import org.gaziz.modrinthdirect.client.api.models.SearchHit
+import org.gaziz.modrinthdirect.client.api.models.SearchResponse
+import org.gaziz.modrinthdirect.client.api.models.VersionInfo
 import java.io.File
 import java.nio.file.Path
 import javax.imageio.ImageIO
 import javax.imageio.ImageReader
 import kotlin.io.path.createDirectories
 
-@Serializable
-data class SearchHit(
-    val title: String,
-    val slug: String,
-    val description: String,
-    val author: String,
-    val downloads: Long,
-    val follows: Long,
-    @SerialName("icon_url") val iconUrl: String,
-    @SerialName("date_modified") val dateModified: String,
-    @SerialName("client_side") val clientSide: String,
-    @SerialName("server_side") val serverSide: String,
-)
+object ApiClient {
 
-@Serializable
-data class SearchResponse(
-    @SerialName("hits") val hits: List<SearchHit>
-)
+    private val json = Json {
+        ignoreUnknownKeys = true
+        prettyPrint = true
+        isLenient = true
+    }
 
-@Serializable
-data class VersionFile(
-    val url: String,
-    val primary: Boolean
-)
-
-@Serializable
-data class DependencyInfo(
-    @SerialName("project_id") val projectId: String,
-    @SerialName("dependency_type") val dependencyType: String
-)
-
-@Serializable
-data class VersionInfo(
-    val id: String,
-    val files: List<VersionFile>,
-    val status: String,
-    val dependencies: List<DependencyInfo>
-)
-
-@Serializable
-data class ProjectResp(
-    val slug: String
-)
-
-sealed interface DownloadState {
-    object Loading: DownloadState
-    data class Error(val message: String): DownloadState
-    object OK: DownloadState
-}
-
-val json = Json {
-    ignoreUnknownKeys = true
-    prettyPrint = true
-    isLenient = true
-}
-
-object DownloaderClient {
     private val client =  HttpClient(CIO){
         install(ContentNegotiation) {
             json(json)
@@ -89,7 +43,7 @@ object DownloaderClient {
     private val _searchedMods = MutableStateFlow<List<SearchHit>>(emptyList())
     val searchedMods: StateFlow<List<SearchHit>> = _searchedMods.asStateFlow()
 
-    private val _downloadState = MutableStateFlow<Map<String,DownloadState>>(emptyMap())
+    private val _downloadState = MutableStateFlow<Map<String, DownloadState>>(emptyMap())
     val downloadState: StateFlow<Map<String,DownloadState>> = _downloadState.asStateFlow()
 
     suspend fun removeDownloadState(slug: String){
@@ -102,7 +56,7 @@ object DownloaderClient {
 
         val bufferedImage = if (contentType.contains("webp")) {
             val reader: ImageReader = ImageIO.getImageReadersByMIMEType("image/webp").next()
-            val param = reader.defaultReadParam as WebPReadParam
+            val param = WebPReadParam()
             param.isBypassFiltering = true
             reader.input = ImageIO.createImageInputStream(rawBytes.inputStream())
             reader.read(0, param)
@@ -156,7 +110,13 @@ object DownloaderClient {
         }
     }
 
-    private suspend fun installDepend(slug: String) {
+    suspend fun startDownload(
+        slug: String,
+        isSetState: Boolean = true
+    ) {
+        if(isSetState) {
+            _downloadState.emit(downloadState.value.toMutableMap().apply { set(slug,DownloadState.Loading) })
+        }
         val versions = client.get(
             "https://api.modrinth.com/v2/project/$slug/version"
         ) {
@@ -171,48 +131,23 @@ object DownloaderClient {
             ) {
                 for(depend in version.dependencies){
                     if(depend.dependencyType == "required") {
-                        installDepend(client.get("https://api.modrinth.com/v2/project/${depend.projectId}").body<ProjectResp>().slug)
+                        startDownload(client.get("https://api.modrinth.com/v2/project/${depend.projectId}").body<ProjectResp>().slug,false)
                     }
                 }
                 for(vFile in version.files) {
                     if(vFile.primary) {
                         downloadMod(vFile.url, slug)
+                        if(isSetState) {
+                            _downloadState.emit(downloadState.value.toMutableMap().apply { set(slug,DownloadState.OK) })
+                        }
                         return
                     }
                 }
             }
         }
-    }
-
-    suspend fun startDownload(slug: String) {
-        _downloadState.emit(downloadState.value.toMutableMap().apply { set(slug,DownloadState.Loading) })
-        val versions = client.get(
-            "https://api.modrinth.com/v2/project/$slug/version"
-        ) {
-            parameter("loaders","[\"fabric\"]")
-            parameter("game_versions","[\"1.21.11\"]")
-            parameter("include_changelog", false)
-        }.body<List<VersionInfo>>()
-        for(version in versions) {
-            if(
-                version.status == "listed" ||
-                version.status == "archived"
-            ) {
-                for(depend in version.dependencies){
-                    if(depend.dependencyType == "required") {
-                        installDepend(depend.projectId)
-                    }
-                }
-                for(vFile in version.files) {
-                    if(vFile.primary) {
-                        downloadMod(vFile.url, slug)
-                        _downloadState.emit(downloadState.value.toMutableMap().apply { set(slug,DownloadState.OK) })
-                        return
-                    }
-                }
-            }
+        if(isSetState) {
+            _downloadState.emit(downloadState.value.toMutableMap().apply { set(slug,DownloadState.Error("no installable files available")) })
         }
-        _downloadState.emit(downloadState.value.toMutableMap().apply { set(slug,DownloadState.Error("no installable files available")) })
     }
 
 }

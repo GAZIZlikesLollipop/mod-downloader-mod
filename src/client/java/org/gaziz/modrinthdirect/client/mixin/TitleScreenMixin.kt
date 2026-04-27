@@ -5,7 +5,7 @@ import net.minecraft.client.gui.components.Button
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.gui.screens.TitleScreen
 import net.minecraft.network.chat.Component
-import org.gaziz.modrinthdirect.client.ModificationsScreen
+import org.gaziz.modrinthdirect.client.ui.ModificationsScreen
 import org.spongepowered.asm.mixin.Mixin
 import org.spongepowered.asm.mixin.injection.At
 import org.spongepowered.asm.mixin.injection.Inject
