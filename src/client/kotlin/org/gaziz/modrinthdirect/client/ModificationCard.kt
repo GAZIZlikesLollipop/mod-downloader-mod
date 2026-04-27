@@ -15,7 +15,7 @@ import net.minecraft.network.chat.Component
 import net.minecraft.resources.Identifier
 import net.minecraft.world.item.Items
 import org.gaziz.modrinthdirect.ModrinthDirect
-import org.slf4j.LoggerFactory
+import org.gaziz.modrinthdirect.client.ModificationsScreen.formatTitle
 import java.nio.file.Path
 import java.nio.file.StandardWatchEventKinds
 import java.nio.file.WatchEvent
@@ -31,7 +31,7 @@ class ModificationCard(
     texturePath: Observable<String>,
     isInstalled: Observable<Boolean>,
     flow: MutableStateFlow<WatchEvent<*>?>,
-    changeProject: (String) -> Unit,
+    onClick: () -> Unit,
 ): FlowLayout(
     Sizing.content(),
     Sizing.content(),
@@ -87,22 +87,14 @@ class ModificationCard(
             else -> str
         }
     }
-    private val formattedName = "[a-z0-9/._-]"
-        .toRegex()
-        .findAll(
-            hit.title
-                .lowercase()
-                .replace(" ","-"),
-            0
-        )
-        .joinToString("") { it.value }
+
 
     init {
         CoroutineScope(Dispatchers.IO).launch {
             flow.collect {
                 if(it != null) {
                     val data = it as WatchEvent<Path>
-                    if("${formattedName}.jar" == data.context().name) {
+                    if("${formatTitle(hit.slug)}.jar" == data.context().name) {
                         if(data.kind() == StandardWatchEventKinds.ENTRY_CREATE) {
                             isInstalled.set(true)
                         } else {
@@ -113,10 +105,10 @@ class ModificationCard(
             }
         }
         var modType = ""
-        if(hit.client_side == "optional" || hit.client_side == "required") {
+        if(hit.clientSide == "optional" || hit.clientSide == "required") {
             modType = "Client, "
         }
-        if(hit.server_side == "optional" || hit.server_side == "required") {
+        if(hit.serverSide == "optional" || hit.serverSide == "required") {
             modType += "Server"
         } else {
             modType = modType.dropLast(2)
@@ -227,7 +219,7 @@ class ModificationCard(
                         .child(UIComponents.item(Items.CLOCK.defaultInstance).sizing(Sizing.fixed(10)))
                         .child(
                             UIComponents
-                                .label(Component.literal(formatTimeAgo(hit.date_modified)))
+                                .label(Component.literal(formatTimeAgo(hit.dateModified)))
                                 .color(Color.ofFormatting(ChatFormatting.GRAY))
                         )
                         .gap(2)
@@ -251,7 +243,8 @@ class ModificationCard(
                 .gap(4)
         )
         this.mouseDown().subscribe { _, bool ->
-            changeProject(hit.project_id)
+            onClick()
+            project.set(hit.slug)
             this.surface(Surface.DARK_PANEL)
             bool
         }
@@ -259,14 +252,14 @@ class ModificationCard(
             this.surface(Surface.DARK_PANEL)
         }
         project.observe { p ->
-           if(p != hit.project_id)  {
+           if(p != hit.slug)  {
                this.surface(Surface.TOOLTIP)
            }
         }
         this.mouseLeave().subscribe {
             val project = project.get()
             if(project != null) {
-                if(project != hit.project_id) {
+                if(project != hit.slug) {
                     this.surface(Surface.TOOLTIP)
                 }
             } else {

@@ -25,6 +25,16 @@ import kotlin.io.path.name
 import kotlin.time.Duration.Companion.milliseconds
 
 object ModificationsScreen: BaseOwoScreen<FlowLayout>() {
+    fun formatTitle(title: String) = "[a-z0-9/._-]"
+        .toRegex()
+        .findAll(
+            title
+                .lowercase()
+                .replace(" ","-"),
+            0
+        )
+        .joinToString("") { it.value }
+
     override fun createAdapter(): OwoUIAdapter<FlowLayout> {
         return OwoUIAdapter.create(this, UIContainers::verticalFlow)
     }
@@ -89,15 +99,7 @@ object ModificationsScreen: BaseOwoScreen<FlowLayout>() {
                    gap(4)
                     if(hits.isNotEmpty()) {
                        for(hit in hits) {
-                           val formattedName = "[a-z0-9/._-]"
-                               .toRegex()
-                               .findAll(
-                                   hit.title
-                                       .lowercase()
-                                       .replace(" ","-"),
-                                   0
-                               )
-                               .joinToString("") { it.value }
+                           val formattedName = formatTitle(hit.slug)
 
                            val texturePath: Observable<String> = Observable.of("textures/default-mod-icon.png")
                            val isInstalled: Observable<Boolean> = Observable.of(false)
@@ -121,7 +123,6 @@ object ModificationsScreen: BaseOwoScreen<FlowLayout>() {
                                        isInstalled,
                                        flow
                                    ) {
-                                       project.set(it)
                                        if(isInstalled.get()) {
                                            installBtn.message = Component.literal("Delete mod")
                                        } else {
@@ -131,39 +132,8 @@ object ModificationsScreen: BaseOwoScreen<FlowLayout>() {
                                            installBtn.active(false)
                                            project.set(null)
                                            if(!isInstalled.get()){
-                                               val installToast = SystemToast(
-                                                   SystemToast.SystemToastId.PERIODIC_NOTIFICATION,
-                                                   Component.literal("Modrinth Direct"),
-                                                   Component.literal("Downloading ${hit.title}")
-                                               )
-                                               toastManager.addToast(installToast)
                                                CoroutineScope(Dispatchers.IO).launch {
-                                                   val result = DownloaderClient.downloadMod(
-                                                       hit.project_id,
-                                                       formattedName
-                                                   )
-                                                   if (result != null) {
-                                                       val noFilesToast = SystemToast(
-                                                           SystemToast.SystemToastId.PERIODIC_NOTIFICATION,
-                                                           Component.literal("Modrinth Direct"),
-                                                           Component.literal("${hit.title} installation error")
-                                                       )
-                                                       toastManager.addToast(noFilesToast)
-                                                   } else {
-                                                       val installedToast = SystemToast(
-                                                           SystemToast.SystemToastId.PERIODIC_NOTIFICATION,
-                                                           Component.literal("Modrinth Direct"),
-                                                           Component.literal("${hit.title} successfully installed")
-                                                       )
-                                                       val alertToast = SystemToast(
-                                                           SystemToast.SystemToastId.PERIODIC_NOTIFICATION,
-                                                           Component.literal("Modrinth Direct"),
-                                                           Component.literal("Restart the game to enable the mod")
-                                                       )
-                                                       toastManager.addToast(installedToast)
-                                                       delay(2000.milliseconds)
-                                                       toastManager.addToast(alertToast)
-                                                   }
+                                                   DownloaderClient.startDownload(hit.slug)
                                                }
                                            } else {
                                                try {
@@ -190,7 +160,7 @@ object ModificationsScreen: BaseOwoScreen<FlowLayout>() {
                                )
                                CoroutineScope(Dispatchers.IO).launch {
                                    val texId = Identifier.fromNamespaceAndPath(ModrinthDirect.MOD_ID,formattedName)
-                                   val nativeImage = DownloaderClient.downloadPhoto(hit.icon_url)
+                                   val nativeImage = DownloaderClient.downloadPhoto(hit.iconUrl)
 
                                    Minecraft.getInstance().execute {
                                        val dynTex = DynamicTexture({ formattedName }, nativeImage)
@@ -226,11 +196,47 @@ object ModificationsScreen: BaseOwoScreen<FlowLayout>() {
             }
         }
 
+        CoroutineScope(Dispatchers.IO).launch {
+            DownloaderClient.downloadState.collect {
+                it.toList().forEach { m ->
+                    when(m.second) {
+                        is DownloadState.Error -> {
+                            val noFilesToast = SystemToast(
+                                SystemToast.SystemToastId.PERIODIC_NOTIFICATION,
+                                Component.literal("Modrinth Direct"),
+                                Component.literal("${m.first} installation error")
+                            )
+                            toastManager.addToast(noFilesToast)
+                        }
+                        is DownloadState.Loading -> {
+                            val installToast = SystemToast(
+                                SystemToast.SystemToastId.PERIODIC_NOTIFICATION,
+                                Component.literal("Modrinth Direct"),
+                                Component.literal("Downloading ${m.first}")
+                            )
+                            toastManager.addToast(installToast)
+                        }
+                        is DownloadState.OK -> {
+                            DownloaderClient.removeDownloadState(m.first)
+                            val installedToast = SystemToast(
+                                SystemToast.SystemToastId.PERIODIC_NOTIFICATION,
+                                Component.literal("Modrinth Direct"),
+                                Component.literal("${m.first} successfully installed, restart to enable mod")
+                            )
+                            toastManager.addToast(installedToast)
+                        }
+                    }
+                }
+            }
+        }
+
         val searchButton = UIComponents
             .button(
                 Component.literal("   "),
                 {
                     Minecraft.getInstance().execute {
+                        installBtn.message = Component.literal("Install mod")
+                        installBtn.active(false)
                         modsList.clearChildren()
                         modsList.child(intermediateChild)
                     }
@@ -300,9 +306,11 @@ object ModificationsScreen: BaseOwoScreen<FlowLayout>() {
                         .horizontalAlignment(HorizontalAlignment.CENTER)
                 )
                 .alignment(HorizontalAlignment.CENTER, VerticalAlignment.CENTER)
-                .padding(Insets.of(10,10,10,10))
+                .padding(Insets.of(10))
         )
-        root.surface(Surface.vanillaPanorama(true)).alignment(HorizontalAlignment.CENTER, VerticalAlignment.CENTER)
+        root
+            .surface(Surface.vanillaPanorama(true))
+            .alignment(HorizontalAlignment.CENTER, VerticalAlignment.CENTER)
     }
 
 }
