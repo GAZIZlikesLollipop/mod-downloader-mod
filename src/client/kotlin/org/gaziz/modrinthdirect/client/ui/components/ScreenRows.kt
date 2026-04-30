@@ -11,9 +11,9 @@ import io.wispforest.owo.util.Observable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import net.minecraft.client.Minecraft
-import net.minecraft.network.chat.Component
-import net.minecraft.world.item.Items
+import net.minecraft.client.MinecraftClient
+import net.minecraft.item.Items
+import net.minecraft.text.Text
 import org.gaziz.modrinthdirect.client.api.ApiClient
 import org.gaziz.modrinthdirect.client.ui.ModificationsScreen.intermediateChild
 
@@ -29,10 +29,10 @@ class SearchRow(
        val searchText: Observable<String> = Observable.of("")
        val searchButton = UIComponents
            .button(
-               Component.literal("   ")
+               Text.literal("   ")
            ) {
-               Minecraft.getInstance().execute {
-                   installBtn.message = Component.literal("Install mod")
+               MinecraftClient.getInstance().execute {
+                   installBtn.message = Text.literal("Install mod")
                    installBtn.active(false)
                    modList.clearChildren()
                    modList.child(intermediateChild)
@@ -46,7 +46,7 @@ class SearchRow(
        val searchField = UIComponents
            .textBox(Sizing.fill(95), searchText.get())
            .apply {
-               setHint(Component.literal("Search mods..."))
+               setPlaceholder(Text.literal("Search mods..."))
                onChanged().subscribe {
                    searchButton.active(it.isNotEmpty())
                    searchText.set(it)
@@ -59,7 +59,7 @@ class SearchRow(
                    .child(searchButton)
                    .child(
                        UIComponents
-                           .item(Items.SPYGLASS.defaultInstance)
+                           .item(Items.SPYGLASS.defaultStack)
                            .sizing(Sizing.fixed(16))
                    )
                    .alignment(HorizontalAlignment.CENTER, VerticalAlignment.CENTER)
@@ -76,7 +76,7 @@ class BottomRow: FlowLayout(
 ) {
     val installBtn: ButtonComponent = UIComponents
         .button(
-            Component.literal("Install mod"),
+            Text.literal("Install mod"),
             {
                 it.active(false)
             }
@@ -85,8 +85,8 @@ class BottomRow: FlowLayout(
     init {
         this.child(
             UIComponents.button(
-                Component.literal("Back"),
-                { Minecraft.getInstance().setScreen(null) }
+                Text.literal("Back"),
+                { MinecraftClient.getInstance().setScreen(null) }
             )
         )
         this.child(installBtn)

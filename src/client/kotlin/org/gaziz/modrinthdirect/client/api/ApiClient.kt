@@ -1,7 +1,6 @@
 package org.gaziz.modrinthdirect.client.api
 
 import com.luciad.imageio.webp.WebPReadParam
-import com.mojang.blaze3d.platform.NativeImage
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
@@ -13,13 +12,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.serialization.json.Json
-import net.minecraft.client.Minecraft
+import net.minecraft.client.MinecraftClient
+import net.minecraft.client.texture.NativeImage
+import org.gaziz.modrinthdirect.client.api.models.*
 import org.gaziz.modrinthdirect.client.ui.ModificationsScreen.formatTitle
-import org.gaziz.modrinthdirect.client.api.models.DownloadState
-import org.gaziz.modrinthdirect.client.api.models.ProjectResp
-import org.gaziz.modrinthdirect.client.api.models.SearchHit
-import org.gaziz.modrinthdirect.client.api.models.SearchResponse
-import org.gaziz.modrinthdirect.client.api.models.VersionInfo
 import java.io.File
 import java.nio.file.Path
 import javax.imageio.ImageIO
@@ -46,7 +42,7 @@ object ApiClient {
     private val _downloadState = MutableStateFlow<Map<String, DownloadState>>(emptyMap())
     val downloadState: StateFlow<Map<String,DownloadState>> = _downloadState.asStateFlow()
 
-    suspend fun removeDownloadState(slug: String){
+    suspend fun removeDownloadState(slug: String) {
         _downloadState.emit(downloadState.value.toMutableMap().apply { remove(slug) }.toMap())
     }
 
@@ -70,7 +66,7 @@ object ApiClient {
 
         for (y in 0 until height) {
             for (x in 0 until width) {
-                nativeImage.setPixel(x, y, bufferedImage.getRGB(x, y))
+                nativeImage.setColorArgb(x, y, bufferedImage.getRGB(x, y))
             }
         }
 
@@ -101,7 +97,7 @@ object ApiClient {
     ) {
         val fileName = formatTitle(slug)
         try {
-            val modsDir = "${Minecraft.getInstance().gameDirectory.path}/mods"
+            val modsDir = "${MinecraftClient.getInstance().runDirectory.path}/mods"
             val file = File("$modsDir/${fileName}.jar")
             Path.of(modsDir).createDirectories()
             file.writeBytes(client.get(url).bodyAsBytes())
@@ -131,7 +127,8 @@ object ApiClient {
             ) {
                 for(depend in version.dependencies){
                     if(depend.dependencyType == "required") {
-                        startDownload(client.get("https://api.modrinth.com/v2/project/${depend.projectId}").body<ProjectResp>().slug,false)
+                        val depSlug = client.get("https://api.modrinth.com/v2/project/${depend.projectId}").body<ProjectResp>().slug
+                        startDownload(depSlug,false)
                     }
                 }
                 for(vFile in version.files) {

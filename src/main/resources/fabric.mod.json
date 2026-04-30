@@ -5,13 +5,12 @@
 	"name": "Modrinth Direct",
 	"description": "Automates mod discovery and installation using the Modrinth API.",
 	"authors": [
-		"Gaziz"
+		"gaziz"
 	],
 	"contact": {
-		"homepage": "https://fabricmc.net/",
 		"sources": "https://github.com/GAZIZlikesLollipop/modrinth-direct"
 	},
-	"license": "CC0-1.0",
+	"license": "MIT",
 	"icon": "assets/modrinth-direct/icon.png",
 	"environment": "*",
 	"entrypoints": {
@@ -29,7 +28,6 @@
 		]
 	},
 	"mixins": [
-		"modrinth-direct.mixins.json",
 		{
 			"config": "modrinth-direct.client.mixins.json",
 			"environment": "client"
@@ -40,6 +38,8 @@
 		"minecraft": "~1.21.11",
 		"java": ">=21",
 		"fabric-api": "*",
-		"fabric-language-kotlin": "*"
+		"fabric-language-kotlin": "*",
+		"owo": ">=0.13.0",
+		"modmenu": ">=17.0.0"
 	}
 }

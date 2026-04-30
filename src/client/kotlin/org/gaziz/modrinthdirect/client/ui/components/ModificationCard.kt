@@ -1,6 +1,7 @@
 package org.gaziz.modrinthdirect.client.ui.components
 
 import io.wispforest.owo.ui.component.UIComponents
+import net.minecraft.text.Text
 import io.wispforest.owo.ui.container.FlowLayout
 import io.wispforest.owo.ui.container.UIContainers
 import io.wispforest.owo.ui.core.Color
@@ -13,10 +14,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
-import net.minecraft.ChatFormatting
-import net.minecraft.network.chat.Component
-import net.minecraft.resources.Identifier
-import net.minecraft.world.item.Items
+import net.minecraft.item.Items
+import net.minecraft.util.Formatting
+import net.minecraft.util.Identifier
 import org.gaziz.modrinthdirect.ModrinthDirect
 import org.gaziz.modrinthdirect.client.api.models.SearchHit
 import org.gaziz.modrinthdirect.client.ui.ModificationsScreen
@@ -125,7 +125,7 @@ class ModificationCard(
 
         val lastChild =
             UIComponents.texture(
-                Identifier.fromNamespaceAndPath(
+                Identifier.of(
                     ModrinthDirect.MOD_ID,
                     texturePath.get()
                 ),
@@ -144,7 +144,7 @@ class ModificationCard(
             this.child(
                 0,
                 UIComponents.texture(
-                    Identifier.fromNamespaceAndPath(
+                    Identifier.of(
                         ModrinthDirect.MOD_ID,
                         it
                     ),
@@ -163,43 +163,43 @@ class ModificationCard(
             UIContainers.verticalFlow(Sizing.fill(65), Sizing.content())
                 .child(
                     UIContainers.horizontalFlow(Sizing.content(), Sizing.content())
-                        .child(UIComponents.label(Component.literal(hit.title)))
+                        .child(UIComponents.label(Text.literal(hit.title)))
                         .child(
                             UIComponents
-                                .label(Component.literal(" by ${hit.author}"))
-                                .color(Color.ofFormatting(ChatFormatting.GRAY))
+                                .label(Text.literal(" by ${hit.author}"))
+                                .color(Color.ofFormatting(Formatting.GRAY))
                         )
                 )
                 .child(
                     UIComponents
-                        .label(Component.literal(hit.description))
-                        .color(Color.ofFormatting(ChatFormatting.GRAY))
+                        .label(Text.literal(hit.description))
+                        .color(Color.ofFormatting(Formatting.GRAY))
                 )
                 .child(
                     UIComponents
-                        .label(Component.literal(modType))
-                        .color(Color.ofFormatting(ChatFormatting.DARK_GRAY))
+                        .label(Text.literal(modType))
+                        .color(Color.ofFormatting(Formatting.DARK_GRAY))
                 )
                 .gap(4)
         )
 
         val notInstalled = UIContainers
             .horizontalFlow(Sizing.content(), Sizing.content())
-            .child(UIComponents.item(Items.GLASS_BOTTLE.defaultInstance).sizing(Sizing.fixed(10)))
+            .child(UIComponents.item(Items.GLASS_BOTTLE.defaultStack).sizing(Sizing.fixed(10)))
             .child(
                 UIComponents
-                    .label(Component.literal("Not installed"))
-                    .color(Color.ofFormatting(ChatFormatting.RED))
+                    .label(Text.literal("Not installed"))
+                    .color(Color.ofFormatting(Formatting.RED))
             )
             .gap(2)
             .verticalAlignment(VerticalAlignment.CENTER)
         val installed = UIContainers
             .horizontalFlow(Sizing.content(), Sizing.content())
-            .child(UIComponents.item(Items.EXPERIENCE_BOTTLE.defaultInstance).sizing(Sizing.fixed(10)))
+            .child(UIComponents.item(Items.EXPERIENCE_BOTTLE.defaultStack).sizing(Sizing.fixed(10)))
             .child(
                 UIComponents
-                    .label(Component.literal("Installed"))
-                    .color(Color.ofFormatting(ChatFormatting.GREEN))
+                    .label(Text.literal("Installed"))
+                    .color(Color.ofFormatting(Formatting.GREEN))
             )
             .gap(2)
             .verticalAlignment(VerticalAlignment.CENTER)
@@ -211,20 +211,20 @@ class ModificationCard(
             )
                 .child(
                     UIContainers.horizontalFlow(Sizing.content(), Sizing.content())
-                        .child(UIComponents.item(Items.HOPPER.defaultInstance).sizing(Sizing.fixed(10)))
-                        .child(UIComponents.label(Component.literal(hit.downloads.toDisplay())))
-                        .child(UIComponents.item(Items.NETHER_STAR.defaultInstance).sizing(Sizing.fixed(10)))
-                        .child(UIComponents.label(Component.literal(hit.follows.toDisplay())))
+                        .child(UIComponents.item(Items.HOPPER.defaultStack).sizing(Sizing.fixed(10)))
+                        .child(UIComponents.label(Text.literal(hit.downloads.toDisplay())))
+                        .child(UIComponents.item(Items.NETHER_STAR.defaultStack).sizing(Sizing.fixed(10)))
+                        .child(UIComponents.label(Text.literal(hit.follows.toDisplay())))
                         .gap(2)
                         .verticalAlignment(VerticalAlignment.CENTER)
                 )
                 .child(
                     UIContainers.horizontalFlow(Sizing.content(), Sizing.content())
-                        .child(UIComponents.item(Items.CLOCK.defaultInstance).sizing(Sizing.fixed(10)))
+                        .child(UIComponents.item(Items.CLOCK.defaultStack).sizing(Sizing.fixed(10)))
                         .child(
                             UIComponents
-                                .label(Component.literal(formatTimeAgo(hit.dateModified)))
-                                .color(Color.ofFormatting(ChatFormatting.GRAY))
+                                .label(Text.literal(formatTimeAgo(hit.dateModified)))
+                                .color(Color.ofFormatting(Formatting.GRAY))
                         )
                         .gap(2)
                         .verticalAlignment(VerticalAlignment.CENTER)

@@ -9,10 +9,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
-import net.minecraft.client.Minecraft
-import net.minecraft.client.gui.components.toasts.SystemToast
-import net.minecraft.network.chat.Component
-import net.minecraft.world.item.Items
+import net.minecraft.client.MinecraftClient
+import net.minecraft.client.toast.SystemToast
+import net.minecraft.item.Items
+import net.minecraft.text.Text
 import org.gaziz.modrinthdirect.client.api.ApiClient
 import org.gaziz.modrinthdirect.client.api.models.DownloadState
 import org.gaziz.modrinthdirect.client.ui.components.BottomRow
@@ -35,7 +35,7 @@ object ModificationsScreen: BaseOwoScreen<FlowLayout>() {
         return OwoUIAdapter.create(this, UIContainers::verticalFlow)
     }
 
-    private val toastManager = Minecraft.getInstance().toastManager
+    private val toastManager = MinecraftClient.getInstance().toastManager
 
     private val watchService: WatchService = FileSystems.getDefault().newWatchService()
     val modsDirFlow = MutableStateFlow<WatchEvent<*>?>(null)
@@ -45,15 +45,15 @@ object ModificationsScreen: BaseOwoScreen<FlowLayout>() {
             Sizing.fill(),
             Sizing.fill(85)
         )
-        .child(UIComponents.item(Items.CLOCK.defaultInstance))
-        .child(UIComponents.label(Component.literal("Loading...")))
+        .child(UIComponents.item(Items.CLOCK.defaultStack))
+        .child(UIComponents.label(Text.literal("Loading...")))
         .gap(6)
         .alignment(HorizontalAlignment.CENTER, VerticalAlignment.CENTER)
 
     init {
         CoroutineScope(Dispatchers.IO).launch {
             ApiClient.search("")
-            Paths.get("${Minecraft.getInstance().gameDirectory.path}/mods").apply {
+            Paths.get("${MinecraftClient.getInstance().runDirectory.path}/mods").apply {
                 register(
                     watchService,
                     StandardWatchEventKinds.ENTRY_CREATE,
@@ -77,28 +77,28 @@ object ModificationsScreen: BaseOwoScreen<FlowLayout>() {
                     when(m.second) {
                         is DownloadState.Error -> {
                             val noFilesToast = SystemToast(
-                                SystemToast.SystemToastId.PERIODIC_NOTIFICATION,
-                                Component.literal("Modrinth Direct"),
-                                Component.literal("${m.first} installation error")
+                                SystemToast.Type.PERIODIC_NOTIFICATION,
+                                Text.literal("Modrinth Direct"),
+                                Text.literal("${m.first} installation error")
                             )
-                            toastManager.addToast(noFilesToast)
+                            toastManager.add(noFilesToast)
                         }
                         is DownloadState.Loading -> {
                             val installToast = SystemToast(
-                                SystemToast.SystemToastId.PERIODIC_NOTIFICATION,
-                                Component.literal("Modrinth Direct"),
-                                Component.literal("Downloading ${m.first}")
+                                SystemToast.Type.PERIODIC_NOTIFICATION,
+                                Text.literal("Modrinth Direct"),
+                                Text.literal("Downloading ${m.first}")
                             )
-                            toastManager.addToast(installToast)
+                            toastManager.add(installToast)
                         }
                         is DownloadState.OK -> {
                             ApiClient.removeDownloadState(m.first)
                             val installedToast = SystemToast(
-                                SystemToast.SystemToastId.PERIODIC_NOTIFICATION,
-                                Component.literal("Modrinth Direct"),
-                                Component.literal("${m.first} successfully installed, restart to enable mod")
+                                SystemToast.Type.PERIODIC_NOTIFICATION,
+                                Text.literal("Modrinth Direct"),
+                                Text.literal("${m.first} successfully installed, restart to enable mod")
                             )
-                            toastManager.addToast(installedToast)
+                            toastManager.add(installedToast)
                         }
                     }
                 }

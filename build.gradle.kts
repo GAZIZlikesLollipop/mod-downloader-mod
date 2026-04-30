@@ -4,7 +4,7 @@ plugins {
 	id("net.fabricmc.fabric-loom-remap")
 	`maven-publish`
 	id("org.jetbrains.kotlin.jvm") version "2.3.21"
-	kotlin("plugin.serialization") version "2.3.20"
+	kotlin("plugin.serialization") version "2.3.21"
 }
 
 version = providers.gradleProperty("mod_version").get()
@@ -12,6 +12,10 @@ group = providers.gradleProperty("maven_group").get()
 
 repositories {
 	maven { url = uri("https://maven.wispforest.io/releases/") }
+	maven {
+		name = "Terraformers"
+		url = uri("https://maven.terraformersmc.com/")
+	}
 	maven { url = uri("https://jitpack.io") }
 }
 
@@ -29,7 +33,7 @@ loom {
 dependencies {
 	// To change the versions see the gradle.properties file
 	minecraft("com.mojang:minecraft:${providers.gradleProperty("minecraft_version").get()}")
-	mappings(loom.officialMojangMappings())
+	mappings("net.fabricmc:yarn:${providers.gradleProperty("yarn_mappings").get()}:v2")
 	modImplementation("net.fabricmc:fabric-loader:${providers.gradleProperty("loader_version").get()}")
 
 	// Fabric API. This is technically optional, but you probably want it anyway.
@@ -39,6 +43,8 @@ dependencies {
 	//OWO lib
 	modImplementation("io.wispforest:owo-lib:0.13.0+1.21.11")
 	include("io.wispforest:owo-sentinel:0.13.0+1.21.11")
+	//Mod menu
+	modImplementation("com.terraformersmc:modmenu:17.0.0")
 	//Ktor
 	implementation("io.ktor:ktor-client-core:3.4.2")
 	implementation("io.ktor:ktor-client-cio:3.4.2")
@@ -49,6 +55,7 @@ dependencies {
 }
 
 tasks.processResources {
+	val version = version
 	inputs.property("version", version)
 
 	filesMatching("fabric.mod.json") {
@@ -77,10 +84,11 @@ java {
 }
 
 tasks.jar {
-	inputs.property("projectName", project.name)
+	val projectName = project.name
+	inputs.property("projectName", projectName)
 
 	from("LICENSE") {
-		rename { "${it}_${project.name}" }
+		rename { "${it}_$projectName" }
 	}
 }
 

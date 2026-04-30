@@ -14,12 +14,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
-import net.minecraft.client.Minecraft
-import net.minecraft.client.gui.components.toasts.SystemToast
-import net.minecraft.client.renderer.texture.DynamicTexture
-import net.minecraft.network.chat.Component
-import net.minecraft.resources.Identifier
-import net.minecraft.world.item.Items
+import net.minecraft.client.MinecraftClient
+import net.minecraft.client.texture.DynamicTexture
+import net.minecraft.client.texture.NativeImageBackedTexture
+import net.minecraft.client.toast.SystemToast
+import net.minecraft.item.Items
+import net.minecraft.text.Text
+import net.minecraft.util.Identifier
 import org.gaziz.modrinthdirect.ModrinthDirect
 import org.gaziz.modrinthdirect.client.api.ApiClient
 import org.gaziz.modrinthdirect.client.ui.ModificationsScreen.formatTitle
@@ -27,6 +28,7 @@ import org.gaziz.modrinthdirect.client.ui.ModificationsScreen.intermediateChild
 import org.gaziz.modrinthdirect.client.ui.ModificationsScreen.modsDirFlow
 import java.nio.file.Files
 import java.nio.file.Path
+import java.util.function.Supplier
 import kotlin.io.path.name
 
 class ModList(
@@ -36,7 +38,7 @@ class ModList(
     Sizing.fill(85),
     Algorithm.VERTICAL
 ) {
-    private val toastManager = Minecraft.getInstance().toastManager
+    private val toastManager = MinecraftClient.getInstance().toastManager
 
     val list: FlowLayout = UIContainers
         .verticalFlow(
@@ -71,11 +73,11 @@ class ModList(
 
                                 val texturePath: Observable<String> = Observable.of("textures/default-mod-icon.png")
                                 val isInstalled: Observable<Boolean> = Observable.of(false)
-                                Minecraft.getInstance().execute {
+                                MinecraftClient.getInstance().execute {
                                     if(hit == hits[0]) {
                                         clearChildren()
                                     }
-                                    val modsDir = Path.of("${Minecraft.getInstance().gameDirectory.path}/mods")
+                                    val modsDir = Path.of("${MinecraftClient.getInstance().runDirectory.path}/mods")
                                     Files.list(modsDir).use { files ->
                                         files.forEach { f ->
                                             if("$formattedName.jar" == f.name) {
@@ -92,9 +94,9 @@ class ModList(
                                             modsDirFlow
                                         ) {
                                             if (isInstalled.get()) {
-                                                installBtn.message = Component.literal("Delete mod")
+                                                installBtn.message = Text.literal("Delete mod")
                                             } else {
-                                                installBtn.message = Component.literal("Install mod")
+                                                installBtn.message = Text.literal("Install mod")
                                             }
                                             installBtn.onPress {
                                                 installBtn.active(false)
@@ -105,21 +107,21 @@ class ModList(
                                                     }
                                                 } else {
                                                     try {
-                                                        Files.delete(Path.of("${Minecraft.getInstance().gameDirectory.path}/mods/${formattedName}.jar"))
-                                                        installBtn.message = Component.literal("Install mod")
+                                                        Files.delete(Path.of("${MinecraftClient.getInstance().runDirectory.path}/mods/${formattedName}.jar"))
+                                                        installBtn.message = Text.literal("Install mod")
                                                         val deleteToast = SystemToast(
-                                                            SystemToast.SystemToastId.PERIODIC_NOTIFICATION,
-                                                            Component.literal("Modrinth Direct"),
-                                                            Component.literal("${hit.title} successfully deleted")
+                                                            SystemToast.Type.PERIODIC_NOTIFICATION,
+                                                            Text.literal("Modrinth Direct"),
+                                                            Text.literal("${hit.title} successfully deleted")
                                                         )
-                                                        toastManager.addToast(deleteToast)
+                                                        toastManager.add(deleteToast)
                                                     } catch (_: Exception) {
                                                         val deleteToast = SystemToast(
-                                                            SystemToast.SystemToastId.PERIODIC_NOTIFICATION,
-                                                            Component.literal("Modrinth Direct"),
-                                                            Component.literal("Error of deleting ${hit.title}")
+                                                            SystemToast.Type.PERIODIC_NOTIFICATION,
+                                                            Text.literal("Modrinth Direct"),
+                                                            Text.literal("Error of deleting ${hit.title}")
                                                         )
-                                                        toastManager.addToast(deleteToast)
+                                                        toastManager.add(deleteToast)
                                                     }
                                                 }
                                             }
@@ -127,17 +129,16 @@ class ModList(
                                         }
                                     )
                                     CoroutineScope(Dispatchers.IO).launch {
-                                        val texId = Identifier.fromNamespaceAndPath(ModrinthDirect.MOD_ID,formattedName)
+                                        val texId = Identifier.of(ModrinthDirect.MOD_ID, formattedName)
                                         val nativeImage = ApiClient.downloadPhoto(hit.iconUrl)
 
-                                        Minecraft.getInstance().execute {
-                                            val dynTex = DynamicTexture({ formattedName }, nativeImage)
+                                        MinecraftClient.getInstance().execute {
+                                            val texture = NativeImageBackedTexture({""},nativeImage)
 
-                                            Minecraft.getInstance().textureManager
-                                                .register(
-                                                    texId,
-                                                    dynTex
-                                                )
+                                            MinecraftClient.getInstance().textureManager.registerTexture(
+                                                texId,
+                                                texture
+                                            )
 
                                             texturePath.set(formattedName)
                                         }
@@ -145,7 +146,7 @@ class ModList(
                                 }
                             }
                         } else {
-                            Minecraft.getInstance().execute {
+                            MinecraftClient.getInstance().execute {
                                 clearChildren()
                                 child(
                                     UIContainers
@@ -153,8 +154,8 @@ class ModList(
                                             Sizing.fill(),
                                             Sizing.fill(85)
                                         )
-                                        .child(UIComponents.item(Items.BARRIER.defaultInstance))
-                                        .child(UIComponents.label(Component.literal("No results found")).color(Color.RED))
+                                        .child(UIComponents.item(Items.BARRIER.defaultStack))
+                                        .child(UIComponents.label(Text.literal("No results found")).color(Color.RED))
                                         .gap(6)
                                         .alignment(HorizontalAlignment.CENTER, VerticalAlignment.CENTER)
                                 )
