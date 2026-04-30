@@ -11,16 +11,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import net.minecraft.client.MinecraftClient
-import net.minecraft.client.gui.screen.Screen
-import net.minecraft.client.gui.screen.TitleScreen
 import net.minecraft.item.Items
 import net.minecraft.text.Text
 import org.gaziz.modrinthdirect.client.api.ApiClient
-import java.nio.file.FileSystems
-import java.nio.file.Paths
-import java.nio.file.StandardWatchEventKinds
-import java.nio.file.WatchEvent
-import java.nio.file.WatchService
+import java.nio.file.*
 
 object StateHelper {
 
@@ -66,5 +60,7 @@ object StateHelper {
         .alignment(HorizontalAlignment.CENTER, VerticalAlignment.CENTER)
 
     val modsDirFlow = MutableStateFlow<WatchEvent<*>?>(null)
+
+    val cachedIcons = MutableStateFlow<Map<String,String?>>(emptyMap())
 
 }

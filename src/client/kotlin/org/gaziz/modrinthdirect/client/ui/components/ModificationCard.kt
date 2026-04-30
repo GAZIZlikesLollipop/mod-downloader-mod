@@ -14,6 +14,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import net.minecraft.client.MinecraftClient
 import net.minecraft.item.Items
 import net.minecraft.util.Formatting
 import net.minecraft.util.Identifier
@@ -33,7 +34,6 @@ import kotlin.math.pow
 class ModificationCard(
     hit: SearchHit,
     project: Observable<String?>,
-    texturePath: Observable<String>,
     isInstalled: Observable<Boolean>,
     flow: MutableStateFlow<WatchEvent<*>?>,
     onClick: () -> Unit,
@@ -128,7 +128,7 @@ class ModificationCard(
             UIComponents.texture(
                 Identifier.of(
                     ModrinthDirect.MOD_ID,
-                    texturePath.get()
+                    "textures/default-mod-icon.png"
                 ),
                 0,
                 0,
@@ -140,24 +140,33 @@ class ModificationCard(
 
         this.child(lastChild)
 
-        texturePath.observe {
-            this.removeChild(lastChild)
-            this.child(
-                0,
-                UIComponents.texture(
-                    Identifier.of(
-                        ModrinthDirect.MOD_ID,
-                        it
-                    ),
-                    0,
-                    0,
-                    64,
-                    64,
-                    64,
-                    64
-                )
-                    .sizing(Sizing.fixed(32))
-            )
+        CoroutineScope(Dispatchers.IO).launch {
+            var isPosted = false
+            StateHelper.cachedIcons.collect { map ->
+                val value = map[hit.slug]
+                if(value != null && !isPosted) {
+                    isPosted = true
+                    MinecraftClient.getInstance().execute {
+                        removeChild(lastChild)
+                        child(
+                            0,
+                            UIComponents.texture(
+                                Identifier.of(
+                                    ModrinthDirect.MOD_ID,
+                                    value
+                                ),
+                                0,
+                                0,
+                                64,
+                                64,
+                                64,
+                                64
+                            )
+                                .sizing(Sizing.fixed(32))
+                        )
+                    }
+                }
+            }
         }
 
         this.child(

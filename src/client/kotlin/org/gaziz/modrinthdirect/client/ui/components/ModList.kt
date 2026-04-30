@@ -22,6 +22,7 @@ import net.minecraft.text.Text
 import net.minecraft.util.Identifier
 import org.gaziz.modrinthdirect.ModrinthDirect
 import org.gaziz.modrinthdirect.client.api.ApiClient
+import org.gaziz.modrinthdirect.client.ui.state.StateHelper
 import org.gaziz.modrinthdirect.client.ui.state.StateHelper.formatTitle
 import org.gaziz.modrinthdirect.client.ui.state.StateHelper.intermediateChild
 import org.gaziz.modrinthdirect.client.ui.state.StateHelper.modsDirFlow
@@ -69,7 +70,6 @@ class ModList(
                                 for (hit in hits) {
                                     val formattedName = formatTitle(hit.slug)
 
-                                    val texturePath: Observable<String> = Observable.of("textures/default-mod-icon.png")
                                     val isInstalled: Observable<Boolean> = Observable.of(false)
                                     MinecraftClient.getInstance().execute {
                                         if (hit == hits[0]) {
@@ -87,7 +87,6 @@ class ModList(
                                             ModificationCard(
                                                 hit,
                                                 project,
-                                                texturePath,
                                                 isInstalled,
                                                 modsDirFlow
                                             ) {
@@ -126,19 +125,22 @@ class ModList(
                                                 installBtn.active(true)
                                             }
                                         )
-                                        CoroutineScope(Dispatchers.IO).launch {
-                                            val texId = Identifier.of(ModrinthDirect.MOD_ID, formattedName)
-                                            val nativeImage = ApiClient.downloadPhoto(hit.iconUrl)
+                                        if(StateHelper.cachedIcons.value[hit.slug] == null) {
+                                            CoroutineScope(Dispatchers.IO).launch {
+                                                val texId = Identifier.of(ModrinthDirect.MOD_ID, formattedName)
+                                                val nativeImage = ApiClient.downloadPhoto(hit.iconUrl)
 
-                                            MinecraftClient.getInstance().execute {
-                                                val texture = NativeImageBackedTexture({ "" }, nativeImage)
+                                                MinecraftClient.getInstance().execute {
+                                                    val texture = NativeImageBackedTexture({ "" }, nativeImage)
 
-                                                MinecraftClient.getInstance().textureManager.registerTexture(
-                                                    texId,
-                                                    texture
-                                                )
-
-                                                texturePath.set(formattedName)
+                                                    MinecraftClient.getInstance().textureManager.registerTexture(
+                                                        texId,
+                                                        texture
+                                                    )
+                                                    CoroutineScope(Dispatchers.IO).launch {
+                                                        StateHelper.cachedIcons.emit(StateHelper.cachedIcons.value.toMutableMap().apply { set(hit.slug,formattedName) }.toMap())
+                                                    }
+                                                }
                                             }
                                         }
                                     }
