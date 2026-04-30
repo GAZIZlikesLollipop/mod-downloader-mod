@@ -15,7 +15,7 @@ import kotlinx.serialization.json.Json
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.texture.NativeImage
 import org.gaziz.modrinthdirect.client.api.models.*
-import org.gaziz.modrinthdirect.client.ui.ModificationsScreen.formatTitle
+import org.gaziz.modrinthdirect.client.ui.state.StateHelper.formatTitle
 import java.io.File
 import java.nio.file.Path
 import javax.imageio.ImageIO
@@ -36,8 +36,8 @@ object ApiClient {
         }
     }
 
-    private val _searchedMods = MutableStateFlow<List<SearchHit>>(emptyList())
-    val searchedMods: StateFlow<List<SearchHit>> = _searchedMods.asStateFlow()
+    private val _searchedMods = MutableStateFlow<List<SearchHit>?>(null)
+    val searchedMods: StateFlow<List<SearchHit>?> = _searchedMods.asStateFlow()
 
     private val _downloadState = MutableStateFlow<Map<String, DownloadState>>(emptyMap())
     val downloadState: StateFlow<Map<String,DownloadState>> = _downloadState.asStateFlow()
@@ -75,7 +75,7 @@ object ApiClient {
 
     suspend fun search(
         query: String,
-        limit: Int = 15
+        limit: Int = 12
     ) {
         _searchedMods.emit(
             client

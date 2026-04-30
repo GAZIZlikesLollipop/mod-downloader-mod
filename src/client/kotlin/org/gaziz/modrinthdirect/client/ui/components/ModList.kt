@@ -15,7 +15,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
 import net.minecraft.client.MinecraftClient
-import net.minecraft.client.texture.DynamicTexture
 import net.minecraft.client.texture.NativeImageBackedTexture
 import net.minecraft.client.toast.SystemToast
 import net.minecraft.item.Items
@@ -23,12 +22,11 @@ import net.minecraft.text.Text
 import net.minecraft.util.Identifier
 import org.gaziz.modrinthdirect.ModrinthDirect
 import org.gaziz.modrinthdirect.client.api.ApiClient
-import org.gaziz.modrinthdirect.client.ui.ModificationsScreen.formatTitle
-import org.gaziz.modrinthdirect.client.ui.ModificationsScreen.intermediateChild
-import org.gaziz.modrinthdirect.client.ui.ModificationsScreen.modsDirFlow
+import org.gaziz.modrinthdirect.client.ui.state.StateHelper.formatTitle
+import org.gaziz.modrinthdirect.client.ui.state.StateHelper.intermediateChild
+import org.gaziz.modrinthdirect.client.ui.state.StateHelper.modsDirFlow
 import java.nio.file.Files
 import java.nio.file.Path
-import java.util.function.Supplier
 import kotlin.io.path.name
 
 class ModList(
@@ -63,102 +61,105 @@ class ModList(
         CoroutineScope(Dispatchers.IO).launch {
             ApiClient
                 .searchedMods
-                .drop(1)
                 .collect { hits ->
-                    list.apply {
-                        gap(4)
-                        if(hits.isNotEmpty()) {
-                            for(hit in hits) {
-                                val formattedName = formatTitle(hit.slug)
+                    if(hits != null) {
+                        list.apply {
+                            gap(4)
+                            if (hits.isNotEmpty()) {
+                                for (hit in hits) {
+                                    val formattedName = formatTitle(hit.slug)
 
-                                val texturePath: Observable<String> = Observable.of("textures/default-mod-icon.png")
-                                val isInstalled: Observable<Boolean> = Observable.of(false)
-                                MinecraftClient.getInstance().execute {
-                                    if(hit == hits[0]) {
-                                        clearChildren()
-                                    }
-                                    val modsDir = Path.of("${MinecraftClient.getInstance().runDirectory.path}/mods")
-                                    Files.list(modsDir).use { files ->
-                                        files.forEach { f ->
-                                            if("$formattedName.jar" == f.name) {
-                                                isInstalled.set(true)
-                                            }
+                                    val texturePath: Observable<String> = Observable.of("textures/default-mod-icon.png")
+                                    val isInstalled: Observable<Boolean> = Observable.of(false)
+                                    MinecraftClient.getInstance().execute {
+                                        if (hit == hits[0]) {
+                                            clearChildren()
                                         }
-                                    }
-                                    child(
-                                        ModificationCard(
-                                            hit,
-                                            project,
-                                            texturePath,
-                                            isInstalled,
-                                            modsDirFlow
-                                        ) {
-                                            if (isInstalled.get()) {
-                                                installBtn.message = Text.literal("Delete mod")
-                                            } else {
-                                                installBtn.message = Text.literal("Install mod")
-                                            }
-                                            installBtn.onPress {
-                                                installBtn.active(false)
-                                                project.set(null)
-                                                if (!isInstalled.get()) {
-                                                    CoroutineScope(Dispatchers.IO).launch {
-                                                        ApiClient.startDownload(hit.slug)
-                                                    }
-                                                } else {
-                                                    try {
-                                                        Files.delete(Path.of("${MinecraftClient.getInstance().runDirectory.path}/mods/${formattedName}.jar"))
-                                                        installBtn.message = Text.literal("Install mod")
-                                                        val deleteToast = SystemToast(
-                                                            SystemToast.Type.PERIODIC_NOTIFICATION,
-                                                            Text.literal("Modrinth Direct"),
-                                                            Text.literal("${hit.title} successfully deleted")
-                                                        )
-                                                        toastManager.add(deleteToast)
-                                                    } catch (_: Exception) {
-                                                        val deleteToast = SystemToast(
-                                                            SystemToast.Type.PERIODIC_NOTIFICATION,
-                                                            Text.literal("Modrinth Direct"),
-                                                            Text.literal("Error of deleting ${hit.title}")
-                                                        )
-                                                        toastManager.add(deleteToast)
-                                                    }
+                                        val modsDir = Path.of("${MinecraftClient.getInstance().runDirectory.path}/mods")
+                                        Files.list(modsDir).use { files ->
+                                            files.forEach { f ->
+                                                if ("$formattedName.jar" == f.name) {
+                                                    isInstalled.set(true)
                                                 }
                                             }
-                                            installBtn.active(true)
                                         }
-                                    )
-                                    CoroutineScope(Dispatchers.IO).launch {
-                                        val texId = Identifier.of(ModrinthDirect.MOD_ID, formattedName)
-                                        val nativeImage = ApiClient.downloadPhoto(hit.iconUrl)
+                                        child(
+                                            ModificationCard(
+                                                hit,
+                                                project,
+                                                texturePath,
+                                                isInstalled,
+                                                modsDirFlow
+                                            ) {
+                                                if (isInstalled.get()) {
+                                                    installBtn.message = Text.literal("Delete mod")
+                                                } else {
+                                                    installBtn.message = Text.literal("Install mod")
+                                                }
+                                                installBtn.onPress {
+                                                    installBtn.active(false)
+                                                    project.set(null)
+                                                    if (!isInstalled.get()) {
+                                                        CoroutineScope(Dispatchers.IO).launch {
+                                                            ApiClient.startDownload(hit.slug)
+                                                        }
+                                                    } else {
+                                                        try {
+                                                            Files.delete(Path.of("${MinecraftClient.getInstance().runDirectory.path}/mods/${formattedName}.jar"))
+                                                            installBtn.message = Text.literal("Install mod")
+                                                            val deleteToast = SystemToast(
+                                                                SystemToast.Type.PERIODIC_NOTIFICATION,
+                                                                Text.literal("Modrinth Direct"),
+                                                                Text.literal("${hit.title} successfully deleted")
+                                                            )
+                                                            toastManager.add(deleteToast)
+                                                        } catch (_: Exception) {
+                                                            val deleteToast = SystemToast(
+                                                                SystemToast.Type.PERIODIC_NOTIFICATION,
+                                                                Text.literal("Modrinth Direct"),
+                                                                Text.literal("Error of deleting ${hit.title}")
+                                                            )
+                                                            toastManager.add(deleteToast)
+                                                        }
+                                                    }
+                                                }
+                                                installBtn.active(true)
+                                            }
+                                        )
+                                        CoroutineScope(Dispatchers.IO).launch {
+                                            val texId = Identifier.of(ModrinthDirect.MOD_ID, formattedName)
+                                            val nativeImage = ApiClient.downloadPhoto(hit.iconUrl)
 
-                                        MinecraftClient.getInstance().execute {
-                                            val texture = NativeImageBackedTexture({""},nativeImage)
+                                            MinecraftClient.getInstance().execute {
+                                                val texture = NativeImageBackedTexture({ "" }, nativeImage)
 
-                                            MinecraftClient.getInstance().textureManager.registerTexture(
-                                                texId,
-                                                texture
-                                            )
+                                                MinecraftClient.getInstance().textureManager.registerTexture(
+                                                    texId,
+                                                    texture
+                                                )
 
-                                            texturePath.set(formattedName)
+                                                texturePath.set(formattedName)
+                                            }
                                         }
                                     }
                                 }
-                            }
-                        } else {
-                            MinecraftClient.getInstance().execute {
-                                clearChildren()
-                                child(
-                                    UIContainers
-                                        .verticalFlow(
-                                            Sizing.fill(),
-                                            Sizing.fill(85)
-                                        )
-                                        .child(UIComponents.item(Items.BARRIER.defaultStack))
-                                        .child(UIComponents.label(Text.literal("No results found")).color(Color.RED))
-                                        .gap(6)
-                                        .alignment(HorizontalAlignment.CENTER, VerticalAlignment.CENTER)
-                                )
+                            } else {
+                                MinecraftClient.getInstance().execute {
+                                    clearChildren()
+                                    child(
+                                        UIContainers
+                                            .verticalFlow(
+                                                Sizing.fill(),
+                                                Sizing.fill(85)
+                                            )
+                                            .child(UIComponents.item(Items.BARRIER.defaultStack))
+                                            .child(
+                                                UIComponents.label(Text.literal("No results found")).color(Color.RED)
+                                            )
+                                            .gap(6)
+                                            .alignment(HorizontalAlignment.CENTER, VerticalAlignment.CENTER)
+                                    )
+                                }
                             }
                         }
                     }

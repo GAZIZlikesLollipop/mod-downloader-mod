@@ -2,10 +2,7 @@
 	"required": true,
 	"package": "org.gaziz.modrinthdirect.client.mixin",
 	"compatibilityLevel": "JAVA_21",
-	"client": [
-		"ModMenuButtonMixin",
-		"TitleScreenMixin"
-	],
+	"client": [ "ModMenuButtonMixin" ],
 	"injectors": {
 		"defaultRequire": 1
 	},

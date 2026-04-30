@@ -15,7 +15,7 @@ import net.minecraft.client.MinecraftClient
 import net.minecraft.item.Items
 import net.minecraft.text.Text
 import org.gaziz.modrinthdirect.client.api.ApiClient
-import org.gaziz.modrinthdirect.client.ui.ModificationsScreen.intermediateChild
+import org.gaziz.modrinthdirect.client.ui.state.StateHelper.intermediateChild
 
 class SearchRow(
     installBtn: ButtonComponent,
@@ -67,31 +67,4 @@ class SearchRow(
            .gap(2)
            .verticalAlignment(VerticalAlignment.CENTER)
    }
-}
-
-class BottomRow: FlowLayout(
-    Sizing.fill(),
-    Sizing.fill(13),
-    Algorithm.HORIZONTAL
-) {
-    val installBtn: ButtonComponent = UIComponents
-        .button(
-            Text.literal("Install mod"),
-            {
-                it.active(false)
-            }
-        )
-        .active(false)
-    init {
-        this.child(
-            UIComponents.button(
-                Text.literal("Back"),
-                { MinecraftClient.getInstance().setScreen(null) }
-            )
-        )
-        this.child(installBtn)
-        this.gap(16)
-        this.verticalAlignment(VerticalAlignment.CENTER)
-        this.horizontalAlignment(HorizontalAlignment.CENTER)
-    }
 }

@@ -1,74 +1,29 @@
 package org.gaziz.modrinthdirect.client.ui
 
 import io.wispforest.owo.ui.base.BaseOwoScreen
-import io.wispforest.owo.ui.component.UIComponents
 import io.wispforest.owo.ui.container.FlowLayout
 import io.wispforest.owo.ui.container.UIContainers
 import io.wispforest.owo.ui.core.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import net.minecraft.client.MinecraftClient
+import net.minecraft.client.gui.screen.Screen
 import net.minecraft.client.toast.SystemToast
-import net.minecraft.item.Items
 import net.minecraft.text.Text
 import org.gaziz.modrinthdirect.client.api.ApiClient
 import org.gaziz.modrinthdirect.client.api.models.DownloadState
 import org.gaziz.modrinthdirect.client.ui.components.BottomRow
 import org.gaziz.modrinthdirect.client.ui.components.ModList
 import org.gaziz.modrinthdirect.client.ui.components.SearchRow
-import java.nio.file.*
 
-object ModificationsScreen: BaseOwoScreen<FlowLayout>() {
-    fun formatTitle(title: String) = "[a-z0-9/._-]"
-        .toRegex()
-        .findAll(
-            title
-                .lowercase()
-                .replace(" ","-"),
-            0
-        )
-        .joinToString("") { it.value }
+class ModificationsScreen(val previous: Screen): BaseOwoScreen<FlowLayout>() {
 
     override fun createAdapter(): OwoUIAdapter<FlowLayout> {
         return OwoUIAdapter.create(this, UIContainers::verticalFlow)
     }
 
     private val toastManager = MinecraftClient.getInstance().toastManager
-
-    private val watchService: WatchService = FileSystems.getDefault().newWatchService()
-    val modsDirFlow = MutableStateFlow<WatchEvent<*>?>(null)
-
-    val intermediateChild: ParentUIComponent = UIContainers
-        .verticalFlow(
-            Sizing.fill(),
-            Sizing.fill(85)
-        )
-        .child(UIComponents.item(Items.CLOCK.defaultStack))
-        .child(UIComponents.label(Text.literal("Loading...")))
-        .gap(6)
-        .alignment(HorizontalAlignment.CENTER, VerticalAlignment.CENTER)
-
-    init {
-        CoroutineScope(Dispatchers.IO).launch {
-            ApiClient.search("")
-            Paths.get("${MinecraftClient.getInstance().runDirectory.path}/mods").apply {
-                register(
-                    watchService,
-                    StandardWatchEventKinds.ENTRY_CREATE,
-                    StandardWatchEventKinds.ENTRY_DELETE,
-                )
-            }
-            while(true) {
-                val key = watchService.take()
-                for(event in key.pollEvents()) {
-                    modsDirFlow.emit(event)
-                }
-                key.reset()
-            }
-        }
-    }
 
     override fun build(root: FlowLayout) {
         CoroutineScope(Dispatchers.IO).launch {
@@ -105,7 +60,7 @@ object ModificationsScreen: BaseOwoScreen<FlowLayout>() {
             }
         }
 
-        val bottomRow = BottomRow()
+        val bottomRow = BottomRow(previous,this)
         val modList = ModList(bottomRow.installBtn)
         val searchRow = SearchRow(
             bottomRow.installBtn,

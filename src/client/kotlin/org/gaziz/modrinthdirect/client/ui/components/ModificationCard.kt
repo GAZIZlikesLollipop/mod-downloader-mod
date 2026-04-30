@@ -20,6 +20,7 @@ import net.minecraft.util.Identifier
 import org.gaziz.modrinthdirect.ModrinthDirect
 import org.gaziz.modrinthdirect.client.api.models.SearchHit
 import org.gaziz.modrinthdirect.client.ui.ModificationsScreen
+import org.gaziz.modrinthdirect.client.ui.state.StateHelper
 import java.nio.file.Path
 import java.nio.file.StandardWatchEventKinds
 import java.nio.file.WatchEvent
@@ -98,7 +99,7 @@ class ModificationCard(
             flow.collect {
                 if(it != null) {
                     val data = it as WatchEvent<Path>
-                    if("${ModificationsScreen.formatTitle(hit.slug)}.jar" == data.context().name) {
+                    if("${StateHelper.formatTitle(hit.slug)}.jar" == data.context().name) {
                         if(data.kind() == StandardWatchEventKinds.ENTRY_CREATE) {
                             isInstalled.set(true)
                         } else {
