@@ -1,41 +1,30 @@
 package org.gaziz.modrinthdirect.client.ui.components
 
 import io.wispforest.owo.ui.component.UIComponents
-import net.minecraft.text.Text
 import io.wispforest.owo.ui.container.FlowLayout
 import io.wispforest.owo.ui.container.UIContainers
-import io.wispforest.owo.ui.core.Color
-import io.wispforest.owo.ui.core.Insets
-import io.wispforest.owo.ui.core.Sizing
-import io.wispforest.owo.ui.core.Surface
-import io.wispforest.owo.ui.core.VerticalAlignment
+import io.wispforest.owo.ui.core.*
 import io.wispforest.owo.util.Observable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import net.minecraft.client.MinecraftClient
 import net.minecraft.item.Items
+import net.minecraft.text.Text
 import net.minecraft.util.Formatting
 import net.minecraft.util.Identifier
 import org.gaziz.modrinthdirect.ModrinthDirect
 import org.gaziz.modrinthdirect.client.api.models.SearchHit
-import org.gaziz.modrinthdirect.client.ui.ModificationsScreen
 import org.gaziz.modrinthdirect.client.ui.state.StateHelper
-import java.nio.file.Path
-import java.nio.file.StandardWatchEventKinds
-import java.nio.file.WatchEvent
 import java.time.Duration
 import java.time.Instant
 import java.time.OffsetDateTime
-import kotlin.io.path.name
 import kotlin.math.pow
 
 class ModificationCard(
     hit: SearchHit,
     project: Observable<String?>,
     isInstalled: Observable<Boolean>,
-    flow: MutableStateFlow<WatchEvent<*>?>,
     onClick: () -> Unit,
 ): FlowLayout(
     Sizing.content(),
@@ -93,22 +82,7 @@ class ModificationCard(
         }
     }
 
-
     init {
-        CoroutineScope(Dispatchers.IO).launch {
-            flow.collect {
-                if(it != null) {
-                    val data = it as WatchEvent<Path>
-                    if("${StateHelper.formatTitle(hit.slug)}.jar" == data.context().name) {
-                        if(data.kind() == StandardWatchEventKinds.ENTRY_CREATE) {
-                            isInstalled.set(true)
-                        } else {
-                            isInstalled.set(false)
-                        }
-                    }
-                }
-            }
-        }
         var modType = ""
         if(hit.clientSide == "optional" || hit.clientSide == "required") {
             modType = "Client, "
@@ -216,7 +190,7 @@ class ModificationCard(
 
         this.child(
             UIContainers.verticalFlow(
-                Sizing.fill(21),
+                Sizing.fill(23),
                 Sizing.content()
             )
                 .child(
@@ -224,7 +198,17 @@ class ModificationCard(
                         .child(UIComponents.item(Items.HOPPER.defaultStack).sizing(Sizing.fixed(10)))
                         .child(UIComponents.label(Text.literal(hit.downloads.toDisplay())))
                         .child(UIComponents.item(Items.NETHER_STAR.defaultStack).sizing(Sizing.fixed(10)))
-                        .child(UIComponents.label(Text.literal(hit.follows.toDisplay())))
+                        .child(
+                            UIComponents.label(
+                                Text.literal(
+                                    when {
+                                        hit.follows != null -> hit.follows.toDisplay()
+                                        hit.followers != null -> hit.followers.toDisplay()
+                                        else -> "0"
+                                    }
+                                )
+                            )
+                        )
                         .gap(2)
                         .verticalAlignment(VerticalAlignment.CENTER)
                 )
@@ -233,7 +217,17 @@ class ModificationCard(
                         .child(UIComponents.item(Items.CLOCK.defaultStack).sizing(Sizing.fixed(10)))
                         .child(
                             UIComponents
-                                .label(Text.literal(formatTimeAgo(hit.dateModified)))
+                                .label(
+                                    Text.literal(
+                                        formatTimeAgo(
+                                            when {
+                                                hit.dateModified != null -> hit.dateModified
+                                                hit.updated != null -> hit.updated
+                                                else -> ""
+                                            }
+                                        )
+                                    )
+                                )
                                 .color(Color.ofFormatting(Formatting.GRAY))
                         )
                         .gap(2)

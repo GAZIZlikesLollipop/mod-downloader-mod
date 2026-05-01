@@ -13,6 +13,7 @@ import net.minecraft.client.toast.SystemToast
 import net.minecraft.text.Text
 import org.gaziz.modrinthdirect.client.api.ApiClient
 import org.gaziz.modrinthdirect.client.api.models.DownloadState
+import org.gaziz.modrinthdirect.client.data.InstalledMods
 import org.gaziz.modrinthdirect.client.ui.components.BottomRow
 import org.gaziz.modrinthdirect.client.ui.components.ModList
 import org.gaziz.modrinthdirect.client.ui.components.SearchRow

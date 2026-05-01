@@ -10,32 +10,15 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
-import net.minecraft.client.MinecraftClient
 import net.minecraft.item.Items
 import net.minecraft.text.Text
 import org.gaziz.modrinthdirect.client.api.ApiClient
-import java.nio.file.*
 
 object StateHelper {
 
     init {
-        CoroutineScope(Dispatchers.IO).launch {
+        CoroutineScope(Dispatchers.Default).launch {
             ApiClient.search("")
-            val watchService: WatchService = FileSystems.getDefault().newWatchService()
-            Paths.get("${MinecraftClient.getInstance().runDirectory.path}/mods").apply {
-                register(
-                    watchService,
-                    StandardWatchEventKinds.ENTRY_CREATE,
-                    StandardWatchEventKinds.ENTRY_DELETE,
-                )
-            }
-            while(true) {
-                val key = watchService.take()
-                for(event in key.pollEvents()) {
-                    modsDirFlow.emit(event)
-                }
-                key.reset()
-            }
         }
     }
 
@@ -59,8 +42,7 @@ object StateHelper {
         .gap(6)
         .alignment(HorizontalAlignment.CENTER, VerticalAlignment.CENTER)
 
-    val modsDirFlow = MutableStateFlow<WatchEvent<*>?>(null)
-
     val cachedIcons = MutableStateFlow<Map<String,String?>>(emptyMap())
 
+    val isInstalledMods = MutableStateFlow(false)
 }

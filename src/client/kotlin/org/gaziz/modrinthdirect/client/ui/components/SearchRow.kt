@@ -15,6 +15,7 @@ import net.minecraft.client.MinecraftClient
 import net.minecraft.item.Items
 import net.minecraft.text.Text
 import org.gaziz.modrinthdirect.client.api.ApiClient
+import org.gaziz.modrinthdirect.client.ui.state.StateHelper
 import org.gaziz.modrinthdirect.client.ui.state.StateHelper.intermediateChild
 
 class SearchRow(
@@ -38,6 +39,7 @@ class SearchRow(
                    modList.child(intermediateChild)
                }
                CoroutineScope(Dispatchers.IO).launch {
+                   StateHelper.isInstalledMods.emit(false)
                    ApiClient.search(searchText.get())
                }
            }

@@ -4,6 +4,7 @@ import com.luciad.imageio.webp.WebPReadParam
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
+import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -14,8 +15,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.serialization.json.Json
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.texture.NativeImage
+import org.gaziz.modrinthdirect.ModrinthDirect
 import org.gaziz.modrinthdirect.client.api.models.*
+import org.gaziz.modrinthdirect.client.data.InstalledMods
 import org.gaziz.modrinthdirect.client.ui.state.StateHelper.formatTitle
+import org.slf4j.LoggerFactory
 import java.io.File
 import java.nio.file.Path
 import javax.imageio.ImageIO
@@ -33,6 +37,10 @@ object ApiClient {
     private val client =  HttpClient(CIO){
         install(ContentNegotiation) {
             json(json)
+        }
+        install(HttpTimeout) {
+            connectTimeoutMillis = 10000
+            requestTimeoutMillis = 10000
         }
     }
 
@@ -101,6 +109,7 @@ object ApiClient {
             val file = File("$modsDir/${fileName}.jar")
             Path.of(modsDir).createDirectories()
             file.writeBytes(client.get(url).bodyAsBytes())
+            InstalledMods.addMod(slug)
         } catch (_: Exception) {
             _downloadState.emit(downloadState.value.toMutableMap().apply { set(slug,DownloadState.Error("download error")) })
         }
@@ -144,6 +153,25 @@ object ApiClient {
         }
         if(isSetState) {
             _downloadState.emit(downloadState.value.toMutableMap().apply { set(slug,DownloadState.Error("no installable files available")) })
+        }
+    }
+
+    private val logger = LoggerFactory.getLogger(ModrinthDirect.MOD_ID)
+    suspend fun getInstalled(mods: List<String>) {
+        try {
+            _searchedMods.emit(
+                client
+                    .get(
+                        "https://api.modrinth.com/v2/projects",
+                        {
+                            parameter("ids",json.encodeToString(mods).replace(" ","").replace("\n",""))
+                        }
+                    )
+                    .body<List<SearchHit>>()
+            )
+        } catch(e: Exception) {
+            logger.info(e.localizedMessage)
+            _searchedMods.emit(emptyList())
         }
     }
 

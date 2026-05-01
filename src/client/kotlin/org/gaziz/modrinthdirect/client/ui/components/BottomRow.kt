@@ -8,9 +8,15 @@ import io.wispforest.owo.ui.container.UIContainers
 import io.wispforest.owo.ui.core.HorizontalAlignment
 import io.wispforest.owo.ui.core.Sizing
 import io.wispforest.owo.ui.core.VerticalAlignment
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.gui.screen.Screen
 import net.minecraft.text.Text
+import org.gaziz.modrinthdirect.client.api.ApiClient
+import org.gaziz.modrinthdirect.client.data.InstalledMods
+import org.gaziz.modrinthdirect.client.ui.state.StateHelper
 
 class BottomRow(
     previous: Screen,
@@ -34,17 +40,53 @@ class BottomRow(
         MinecraftClient.getInstance().setScreen(previous)
     }
 
-    private val filterButton = UIComponents
-        .button(
-            Text.literal("Installed mods")
-        ) {}
+    private val installedRow =
+        UIContainers
+            .horizontalFlow(Sizing.fill(33), Sizing.content())
+            .child(
+                UIComponents
+                    .button(
+                        Text.literal("Installed mods")
+                    ) {
+                        CoroutineScope(Dispatchers.IO).launch {
+                            StateHelper.isInstalledMods.emit(true)
+                            ApiClient.getInstalled(InstalledMods.installedMods.value)
+                        }
+                    }
+            )
+            .horizontalAlignment(HorizontalAlignment.LEFT)
+
+    private val searchRow = UIContainers
+        .horizontalFlow(Sizing.fill(33), Sizing.content())
+        .child(
+            UIComponents.button(
+                Text.literal("Search mods")
+            ) {
+                CoroutineScope(Dispatchers.IO).launch {
+                    StateHelper.isInstalledMods.emit(false)
+                    ApiClient.search("")
+                }
+            }
+        )
+        .horizontalAlignment(HorizontalAlignment.LEFT)
 
     init {
-        this.child(
-            UIContainers.horizontalFlow(Sizing.fill(33), Sizing.content())
-                .child(filterButton)
-                .horizontalAlignment(HorizontalAlignment.LEFT)
-        )
+        this.child(installedRow)
+        CoroutineScope(Dispatchers.IO).launch {
+            var isFirst = true
+            StateHelper.isInstalledMods.collect {
+                if(!isFirst) {
+                    if(it) {
+                        removeChild(installedRow)
+                        child(0,searchRow)
+                    } else {
+                        removeChild(searchRow)
+                        child(0,installedRow)
+                    }
+                }
+                isFirst = false
+            }
+        }
         this.child(
             UIContainers
                 .horizontalFlow(Sizing.fill(33), Sizing.content())

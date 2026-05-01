@@ -12,7 +12,6 @@ import io.wispforest.owo.ui.core.VerticalAlignment
 import io.wispforest.owo.util.Observable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.texture.NativeImageBackedTexture
@@ -22,13 +21,12 @@ import net.minecraft.text.Text
 import net.minecraft.util.Identifier
 import org.gaziz.modrinthdirect.ModrinthDirect
 import org.gaziz.modrinthdirect.client.api.ApiClient
+import org.gaziz.modrinthdirect.client.data.InstalledMods
 import org.gaziz.modrinthdirect.client.ui.state.StateHelper
 import org.gaziz.modrinthdirect.client.ui.state.StateHelper.formatTitle
 import org.gaziz.modrinthdirect.client.ui.state.StateHelper.intermediateChild
-import org.gaziz.modrinthdirect.client.ui.state.StateHelper.modsDirFlow
 import java.nio.file.Files
 import java.nio.file.Path
-import kotlin.io.path.name
 
 class ModList(
     installBtn: ButtonComponent
@@ -71,24 +69,28 @@ class ModList(
                                     val formattedName = formatTitle(hit.slug)
 
                                     val isInstalled: Observable<Boolean> = Observable.of(false)
+                                    CoroutineScope(Dispatchers.IO).launch {
+                                        InstalledMods.installedMods.collect {
+                                            var installed = false
+                                            for(slug in it) {
+                                               if(slug == hit.slug) {
+                                                   installed = true
+                                                   break
+                                               }
+                                            }
+                                            isInstalled.set(installed)
+                                        }
+                                    }
+
                                     MinecraftClient.getInstance().execute {
                                         if (hit == hits[0]) {
                                             clearChildren()
-                                        }
-                                        val modsDir = Path.of("${MinecraftClient.getInstance().runDirectory.path}/mods")
-                                        Files.list(modsDir).use { files ->
-                                            files.forEach { f ->
-                                                if ("$formattedName.jar" == f.name) {
-                                                    isInstalled.set(true)
-                                                }
-                                            }
                                         }
                                         child(
                                             ModificationCard(
                                                 hit,
                                                 project,
-                                                isInstalled,
-                                                modsDirFlow
+                                                isInstalled
                                             ) {
                                                 if (isInstalled.get()) {
                                                     installBtn.message = Text.literal("Delete mod")
@@ -105,6 +107,9 @@ class ModList(
                                                     } else {
                                                         try {
                                                             Files.delete(Path.of("${MinecraftClient.getInstance().runDirectory.path}/mods/${formattedName}.jar"))
+                                                            CoroutineScope(Dispatchers.IO).launch {
+                                                                InstalledMods.removeMod(hit.slug)
+                                                            }
                                                             installBtn.message = Text.literal("Install mod")
                                                             val deleteToast = SystemToast(
                                                                 SystemToast.Type.PERIODIC_NOTIFICATION,
