@@ -38,10 +38,6 @@ object ApiClient {
         install(ContentNegotiation) {
             json(json)
         }
-        install(HttpTimeout) {
-            connectTimeoutMillis = 10000
-            requestTimeoutMillis = 10000
-        }
     }
 
     private val _searchedMods = MutableStateFlow<List<SearchHit>?>(null)
