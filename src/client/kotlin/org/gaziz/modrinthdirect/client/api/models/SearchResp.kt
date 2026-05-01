@@ -8,7 +8,7 @@ data class SearchHit(
     val title: String,
     val slug: String,
     val description: String,
-    val author: String = "?",
+    val author: String? = null,
     val downloads: Long,
     val follows: Long? = null,
     val followers: Long? = null,

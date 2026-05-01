@@ -27,7 +27,7 @@ class ModificationCard(
     isInstalled: Observable<Boolean>,
     onClick: () -> Unit,
 ): FlowLayout(
-    Sizing.content(),
+    Sizing.fill(99),
     Sizing.content(),
     Algorithm.HORIZONTAL
 ) {
@@ -94,7 +94,7 @@ class ModificationCard(
         }
 
         this.surface(Surface.TOOLTIP)
-        this.padding(Insets.of(16))
+        this.padding(Insets.of(16,16,16,0))
         this.verticalAlignment(VerticalAlignment.CENTER)
         this.gap(12)
 
@@ -148,11 +148,15 @@ class ModificationCard(
                 .child(
                     UIContainers.horizontalFlow(Sizing.content(), Sizing.content())
                         .child(UIComponents.label(Text.literal(hit.title)))
-                        .child(
-                            UIComponents
-                                .label(Text.literal(" by ${hit.author}"))
-                                .color(Color.ofFormatting(Formatting.GRAY))
-                        )
+                        .apply {
+                            if(hit.author != null) {
+                                child(
+                                    UIComponents
+                                        .label(Text.literal(" by ${hit.author}"))
+                                        .color(Color.ofFormatting(Formatting.GRAY))
+                                )
+                            }
+                        }
                 )
                 .child(
                     UIComponents
@@ -190,7 +194,7 @@ class ModificationCard(
 
         this.child(
             UIContainers.verticalFlow(
-                Sizing.fill(23),
+                Sizing.content(),
                 Sizing.content()
             )
                 .child(
@@ -249,6 +253,7 @@ class ModificationCard(
                     }
                 }
                 .gap(4)
+                .horizontalAlignment(HorizontalAlignment.LEFT)
         )
         this.mouseDown().subscribe { _, bool ->
             onClick()
