@@ -1,8 +1,8 @@
 package org.gaziz.modrinthdirect.client.ui.components
 
-import io.wispforest.owo.ui.component.UIComponents
+import io.wispforest.owo.ui.component.Components
 import io.wispforest.owo.ui.container.FlowLayout
-import io.wispforest.owo.ui.container.UIContainers
+import io.wispforest.owo.ui.container.Containers
 import io.wispforest.owo.ui.core.*
 import io.wispforest.owo.util.Observable
 import kotlinx.coroutines.CoroutineScope
@@ -99,7 +99,7 @@ class ModificationCard(
         this.gap(12)
 
         val lastChild =
-            UIComponents.texture(
+            Components.texture(
                 Identifier.of(
                     ModrinthDirect.MOD_ID,
                     "textures/default-mod-icon.png"
@@ -124,7 +124,7 @@ class ModificationCard(
                         removeChild(lastChild)
                         child(
                             0,
-                            UIComponents.texture(
+                            Components.texture(
                                 Identifier.of(
                                     ModrinthDirect.MOD_ID,
                                     value
@@ -144,14 +144,14 @@ class ModificationCard(
         }
 
         this.child(
-            UIContainers.verticalFlow(Sizing.fill(65), Sizing.content())
+            Containers.verticalFlow(Sizing.fill(65), Sizing.content())
                 .child(
-                    UIContainers.horizontalFlow(Sizing.content(), Sizing.content())
-                        .child(UIComponents.label(Text.literal(hit.title)))
+                    Containers.horizontalFlow(Sizing.content(), Sizing.content())
+                        .child(Components.label(Text.literal(hit.title)))
                         .apply {
                             if(hit.author != null) {
                                 child(
-                                    UIComponents
+                                    Components
                                         .label(Text.literal(" by ${hit.author}"))
                                         .color(Color.ofFormatting(Formatting.GRAY))
                                 )
@@ -159,33 +159,33 @@ class ModificationCard(
                         }
                 )
                 .child(
-                    UIComponents
+                    Components
                         .label(Text.literal(hit.description))
                         .color(Color.ofFormatting(Formatting.GRAY))
                 )
                 .child(
-                    UIComponents
+                    Components
                         .label(Text.literal(modType))
                         .color(Color.ofFormatting(Formatting.DARK_GRAY))
                 )
                 .gap(4)
         )
 
-        val notInstalled = UIContainers
+        val notInstalled = Containers
             .horizontalFlow(Sizing.content(), Sizing.content())
-            .child(UIComponents.item(Items.GLASS_BOTTLE.defaultStack).sizing(Sizing.fixed(10)))
+            .child(Components.item(Items.GLASS_BOTTLE.defaultStack).sizing(Sizing.fixed(10)))
             .child(
-                UIComponents
+                Components
                     .label(Text.literal("Not installed"))
                     .color(Color.ofFormatting(Formatting.RED))
             )
             .gap(2)
             .verticalAlignment(VerticalAlignment.CENTER)
-        val installed = UIContainers
+        val installed = Containers
             .horizontalFlow(Sizing.content(), Sizing.content())
-            .child(UIComponents.item(Items.EXPERIENCE_BOTTLE.defaultStack).sizing(Sizing.fixed(10)))
+            .child(Components.item(Items.EXPERIENCE_BOTTLE.defaultStack).sizing(Sizing.fixed(10)))
             .child(
-                UIComponents
+                Components
                     .label(Text.literal("Installed"))
                     .color(Color.ofFormatting(Formatting.GREEN))
             )
@@ -193,17 +193,17 @@ class ModificationCard(
             .verticalAlignment(VerticalAlignment.CENTER)
 
         this.child(
-            UIContainers.verticalFlow(
+            Containers.verticalFlow(
                 Sizing.content(),
                 Sizing.content()
             )
                 .child(
-                    UIContainers.horizontalFlow(Sizing.content(), Sizing.content())
-                        .child(UIComponents.item(Items.HOPPER.defaultStack).sizing(Sizing.fixed(10)))
-                        .child(UIComponents.label(Text.literal(hit.downloads.toDisplay())))
-                        .child(UIComponents.item(Items.NETHER_STAR.defaultStack).sizing(Sizing.fixed(10)))
+                    Containers.horizontalFlow(Sizing.content(), Sizing.content())
+                        .child(Components.item(Items.HOPPER.defaultStack).sizing(Sizing.fixed(10)))
+                        .child(Components.label(Text.literal(hit.downloads.toDisplay())))
+                        .child(Components.item(Items.NETHER_STAR.defaultStack).sizing(Sizing.fixed(10)))
                         .child(
-                            UIComponents.label(
+                            Components.label(
                                 Text.literal(
                                     when {
                                         hit.follows != null -> hit.follows.toDisplay()
@@ -217,10 +217,10 @@ class ModificationCard(
                         .verticalAlignment(VerticalAlignment.CENTER)
                 )
                 .child(
-                    UIContainers.horizontalFlow(Sizing.content(), Sizing.content())
-                        .child(UIComponents.item(Items.CLOCK.defaultStack).sizing(Sizing.fixed(10)))
+                    Containers.horizontalFlow(Sizing.content(), Sizing.content())
+                        .child(Components.item(Items.CLOCK.defaultStack).sizing(Sizing.fixed(10)))
                         .child(
-                            UIComponents
+                            Components
                                 .label(
                                     Text.literal(
                                         formatTimeAgo(
@@ -255,11 +255,11 @@ class ModificationCard(
                 .gap(4)
                 .horizontalAlignment(HorizontalAlignment.LEFT)
         )
-        this.mouseDown().subscribe { _, bool ->
+        this.mouseDown().subscribe { _, _, _ ->
             onClick()
             project.set(hit.slug)
             this.surface(Surface.DARK_PANEL)
-            bool
+            false
         }
         this.mouseEnter().subscribe {
             this.surface(Surface.DARK_PANEL)

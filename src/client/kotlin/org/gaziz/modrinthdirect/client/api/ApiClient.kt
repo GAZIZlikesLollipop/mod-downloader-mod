@@ -70,7 +70,7 @@ object ApiClient {
 
         for (y in 0 until height) {
             for (x in 0 until width) {
-                nativeImage.setColorArgb(x, y, bufferedImage.getRGB(x, y))
+                nativeImage.setColor(x, y, bufferedImage.getRGB(x, y))
             }
         }
 

@@ -41,10 +41,10 @@ dependencies {
 	modImplementation("net.fabricmc:fabric-language-kotlin:${providers.gradleProperty("fabric_kotlin_version").get()}")
 
 	//OWO lib
-	modImplementation("io.wispforest:owo-lib:0.13.0+1.21.11")
-	include("io.wispforest:owo-sentinel:0.13.0+1.21.11")
+	modImplementation("io.wispforest:owo-lib:0.12.15.4+1.21")
+	include("io.wispforest:owo-sentinel:0.12.15.4+1.21")
 	//Mod menu
-	modImplementation("com.terraformersmc:modmenu:17.0.0")
+	modImplementation("com.terraformersmc:modmenu:11.0.4")
 	//Ktor
 	implementation("io.ktor:ktor-client-core:3.4.2")
 	implementation("io.ktor:ktor-client-cio:3.4.2")

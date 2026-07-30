@@ -1,10 +1,10 @@
 package org.gaziz.modrinthdirect.client.ui.components
 
 import io.wispforest.owo.ui.component.ButtonComponent
-import io.wispforest.owo.ui.component.UIComponents
+import io.wispforest.owo.ui.component.Components
+import io.wispforest.owo.ui.container.Containers
 import io.wispforest.owo.ui.container.FlowLayout
 import io.wispforest.owo.ui.container.ScrollContainer
-import io.wispforest.owo.ui.container.UIContainers
 import io.wispforest.owo.ui.core.Color
 import io.wispforest.owo.ui.core.HorizontalAlignment
 import io.wispforest.owo.ui.core.Sizing
@@ -37,7 +37,7 @@ class ModList(
 ) {
     private val toastManager = MinecraftClient.getInstance().toastManager
 
-    val list: FlowLayout = UIContainers
+    val list: FlowLayout = Containers
         .verticalFlow(
             Sizing.content(),
             Sizing.content(),
@@ -48,7 +48,7 @@ class ModList(
 
     init {
         this.child(
-            UIContainers.verticalScroll(
+            Containers.verticalScroll(
                 Sizing.fill(),
                 Sizing.fill(),
                 list
@@ -136,7 +136,7 @@ class ModList(
                                                 val nativeImage = ApiClient.downloadPhoto(hit.iconUrl)
 
                                                 MinecraftClient.getInstance().execute {
-                                                    val texture = NativeImageBackedTexture({ "" }, nativeImage)
+                                                    val texture = NativeImageBackedTexture(nativeImage)
 
                                                     MinecraftClient.getInstance().textureManager.registerTexture(
                                                         texId,
@@ -154,14 +154,14 @@ class ModList(
                                 MinecraftClient.getInstance().execute {
                                     clearChildren()
                                     child(
-                                        UIContainers
+                                        Containers
                                             .verticalFlow(
                                                 Sizing.fill(),
                                                 Sizing.fill(85)
                                             )
-                                            .child(UIComponents.item(Items.BARRIER.defaultStack))
+                                            .child(Components.item(Items.BARRIER.defaultStack))
                                             .child(
-                                                UIComponents.label(Text.literal("No results found")).color(Color.RED)
+                                                Components.label(Text.literal("No results found")).color(Color.RED)
                                             )
                                             .gap(6)
                                             .alignment(HorizontalAlignment.CENTER, VerticalAlignment.CENTER)

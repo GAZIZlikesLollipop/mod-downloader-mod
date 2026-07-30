@@ -1,8 +1,8 @@
 package org.gaziz.modrinthdirect.client.ui
 
 import io.wispforest.owo.ui.base.BaseOwoScreen
+import io.wispforest.owo.ui.container.Containers
 import io.wispforest.owo.ui.container.FlowLayout
-import io.wispforest.owo.ui.container.UIContainers
 import io.wispforest.owo.ui.core.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -21,7 +21,7 @@ import org.gaziz.modrinthdirect.client.ui.components.SearchRow
 class ModificationsScreen(val previous: Screen): BaseOwoScreen<FlowLayout>() {
 
     override fun createAdapter(): OwoUIAdapter<FlowLayout> {
-        return OwoUIAdapter.create(this, UIContainers::verticalFlow)
+        return OwoUIAdapter.create(this, Containers::verticalFlow)
     }
 
     private val toastManager = MinecraftClient.getInstance().toastManager
@@ -69,7 +69,7 @@ class ModificationsScreen(val previous: Screen): BaseOwoScreen<FlowLayout>() {
         )
 
         root.child(
-            UIContainers
+            Containers
                 .verticalFlow(
                     Sizing.content(),
                     Sizing.content(),

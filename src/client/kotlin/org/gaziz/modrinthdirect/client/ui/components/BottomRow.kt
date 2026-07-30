@@ -2,9 +2,9 @@ package org.gaziz.modrinthdirect.client.ui.components
 
 import com.terraformersmc.modmenu.gui.ModsScreen
 import io.wispforest.owo.ui.component.ButtonComponent
-import io.wispforest.owo.ui.component.UIComponents
+import io.wispforest.owo.ui.component.Components
+import io.wispforest.owo.ui.container.Containers
 import io.wispforest.owo.ui.container.FlowLayout
-import io.wispforest.owo.ui.container.UIContainers
 import io.wispforest.owo.ui.core.HorizontalAlignment
 import io.wispforest.owo.ui.core.Sizing
 import io.wispforest.owo.ui.core.VerticalAlignment
@@ -26,7 +26,7 @@ class BottomRow(
     Sizing.fill(13),
     Algorithm.HORIZONTAL
 ) {
-    val installBtn: ButtonComponent = UIComponents
+    val installBtn: ButtonComponent = Components
         .button(
             Text.literal("Install mod")
         ) {
@@ -34,17 +34,17 @@ class BottomRow(
         }
         .active(false)
 
-    private val backButton = UIComponents.button(
+    private val backButton = Components.button(
         Text.literal("Back")
     ) {
         MinecraftClient.getInstance().setScreen(previous)
     }
 
     private val installedRow =
-        UIContainers
+        Containers
             .horizontalFlow(Sizing.fill(33), Sizing.content())
             .child(
-                UIComponents
+                Components
                     .button(
                         Text.literal("Installed mods")
                     ) {
@@ -56,10 +56,10 @@ class BottomRow(
             )
             .horizontalAlignment(HorizontalAlignment.LEFT)
 
-    private val searchRow = UIContainers
+    private val searchRow = Containers
         .horizontalFlow(Sizing.fill(33), Sizing.content())
         .child(
-            UIComponents.button(
+            Components.button(
                 Text.literal("Search mods")
             ) {
                 CoroutineScope(Dispatchers.IO).launch {
@@ -88,7 +88,7 @@ class BottomRow(
             }
         }
         this.child(
-            UIContainers
+            Containers
                 .horizontalFlow(Sizing.fill(33), Sizing.content())
                 .child(backButton)
                 .child(installBtn)
@@ -96,9 +96,9 @@ class BottomRow(
                 .horizontalAlignment(HorizontalAlignment.CENTER)
         )
         this.child(
-            UIContainers.horizontalFlow(Sizing.fill(33), Sizing.content())
+            Containers.horizontalFlow(Sizing.fill(33), Sizing.content())
                 .child(
-                    UIComponents.button(
+                    Components.button(
                         Text.literal("Options")
                     ) {
                         MinecraftClient.getInstance().setScreen(ModsScreen(current))

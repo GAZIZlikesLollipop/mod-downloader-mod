@@ -1,9 +1,9 @@
 package org.gaziz.modrinthdirect.client.ui.components
 
 import io.wispforest.owo.ui.component.ButtonComponent
-import io.wispforest.owo.ui.component.UIComponents
+import io.wispforest.owo.ui.component.Components
 import io.wispforest.owo.ui.container.FlowLayout
-import io.wispforest.owo.ui.container.UIContainers
+import io.wispforest.owo.ui.container.Containers
 import io.wispforest.owo.ui.core.HorizontalAlignment
 import io.wispforest.owo.ui.core.Sizing
 import io.wispforest.owo.ui.core.VerticalAlignment
@@ -28,7 +28,7 @@ class SearchRow(
 ) {
    init {
        val searchText: Observable<String> = Observable.of("")
-       val searchButton = UIComponents
+       val searchButton = Components
            .button(
                Text.literal("   ")
            ) {
@@ -45,7 +45,7 @@ class SearchRow(
            }
            .active(false)
 
-       val searchField = UIComponents
+       val searchField = Components
            .textBox(Sizing.fill(95), searchText.get())
            .apply {
                setPlaceholder(Text.literal("Search mods..."))
@@ -56,11 +56,11 @@ class SearchRow(
            }
        this.child(searchField)
            .child(
-               UIContainers
+               Containers
                    .stack(Sizing.content(), Sizing.content())
                    .child(searchButton)
                    .child(
-                       UIComponents
+                       Components
                            .item(Items.SPYGLASS.defaultStack)
                            .sizing(Sizing.fixed(16))
                    )

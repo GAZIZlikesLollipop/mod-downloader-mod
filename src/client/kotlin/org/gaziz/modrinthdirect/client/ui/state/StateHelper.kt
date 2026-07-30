@@ -1,9 +1,9 @@
 package org.gaziz.modrinthdirect.client.ui.state
 
-import io.wispforest.owo.ui.component.UIComponents
-import io.wispforest.owo.ui.container.UIContainers
+import io.wispforest.owo.ui.component.Components
+import io.wispforest.owo.ui.container.Containers
 import io.wispforest.owo.ui.core.HorizontalAlignment
-import io.wispforest.owo.ui.core.ParentUIComponent
+import io.wispforest.owo.ui.core.ParentComponent
 import io.wispforest.owo.ui.core.Sizing
 import io.wispforest.owo.ui.core.VerticalAlignment
 import kotlinx.coroutines.CoroutineScope
@@ -32,13 +32,13 @@ object StateHelper {
         )
         .joinToString("") { it.value }
 
-    val intermediateChild: ParentUIComponent = UIContainers
+    val intermediateChild: ParentComponent = Containers
         .verticalFlow(
             Sizing.fill(),
             Sizing.fill(85)
         )
-        .child(UIComponents.item(Items.CLOCK.defaultStack))
-        .child(UIComponents.label(Text.literal("Loading...")))
+        .child(Components.item(Items.CLOCK.defaultStack))
+        .child(Components.label(Text.literal("Loading...")))
         .gap(6)
         .alignment(HorizontalAlignment.CENTER, VerticalAlignment.CENTER)
 
