@@ -108,7 +108,16 @@ object ApiClient {
 
         for (y in 0 until height) {
             for (x in 0 until width) {
-                nativeImage.setColor(x, y, bufferedImage.getRGB(x, y))
+                val argb = bufferedImage.getRGB(x, y)
+
+                val a = (argb ushr 24) and 0xFF
+                val r = (argb ushr 16) and 0xFF
+                val g = (argb ushr 8) and 0xFF
+                val b = argb and 0xFF
+
+                val abgr = (a shl 24) or (b shl 16) or (g shl 8) or r
+
+                nativeImage.setColor(x, y, abgr)
             }
         }
 
