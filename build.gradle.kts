@@ -4,7 +4,7 @@ plugins {
 	id("net.fabricmc.fabric-loom-remap")
 	`maven-publish`
 	id("org.jetbrains.kotlin.jvm") version "2.3.21"
-	kotlin("plugin.serialization") version "2.3.21"
+	kotlin("plugin.serialization") version "2.4.10"
 }
 
 version = providers.gradleProperty("mod_version").get()
@@ -45,14 +45,13 @@ dependencies {
 	include("io.wispforest:owo-sentinel:0.12.15.4+1.21")
 	//Mod menu
 	modImplementation("com.terraformersmc:modmenu:11.0.4")
-	//Ktor
-	implementation("io.ktor:ktor-client-core:3.4.2")
-	implementation("io.ktor:ktor-client-cio:3.4.2")
-	implementation("io.ktor:ktor-client-content-negotiation:3.4.2")
-	implementation("io.ktor:ktor-serialization-kotlinx-json:3.4.2")
+
+	//Json serialization
+	implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
 	//WebMImages
-	implementation("org.sejda.imageio:webp-imageio:0.1.6") { isTransitive = false }
-}
+	val webpImageIOVersion = "0.1.6"
+	implementation("org.sejda.imageio:webp-imageio:$webpImageIOVersion") { isTransitive = false }
+	include("org.sejda.imageio:webp-imageio:$webpImageIOVersion")}
 
 tasks.processResources {
 	val version = version
