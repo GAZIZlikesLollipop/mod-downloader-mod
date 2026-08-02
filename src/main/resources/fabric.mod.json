@@ -1,0 +1,37 @@
+{
+	"schemaVersion": 1,
+	"id": "modrinth-direct",
+	"version": "${version}",
+	"name": "Modrinth Direct",
+	"description": "Automates mod discovery and installation using the Modrinth API.",
+	"authors": [
+		"gaziz"
+	],
+	"contact": {
+		"sources": "https://github.com/GazizVR/modrinth-direct"
+	},
+	"license": "MIT",
+	"icon": "assets/modrinth-direct/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			{
+				"value": "org.gaziz.modrinthdirect.ModrinthDirect",
+				"adapter": "kotlin"
+			}
+		],
+		"client": [
+			{
+				"value": "org.gaziz.modrinthdirect.client.ModrinthDirectClient",
+				"adapter": "kotlin"
+			}
+		]
+	},
+	"depends": {
+		"fabricloader": ">=0.19.3",
+		"minecraft": "~26.2",
+		"java": ">=25",
+		"fabric-api": "*",
+		"fabric-language-kotlin": "*"
+	}
+}
