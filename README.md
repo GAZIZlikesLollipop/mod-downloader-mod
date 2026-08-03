@@ -1,3 +1,8 @@
+> [!WARNING]
+>
+> ### Project Archived
+> The project is no longer getting updates, use specific launchers (like [Prism Launcher](https://prismlauncher.org/)) instead of this modification.
+
 <div align="center">
   <img src="src/main/resources/assets/modrinth-direct/icon.png" alt="Modrinth Direct Icon" width="128"/>
 
